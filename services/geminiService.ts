@@ -2,40 +2,34 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
-// Helper to safely retrieve the API key from various build environments (Vite, CRA, Node)
+// Helper to safely retrieve the API key
 const getApiKey = (): string | undefined => {
   let key: string | undefined = undefined;
 
-  // 1. Check process.env (Standard Node/Webpack/CRA)
-  // We check typeof process to avoid ReferenceError in pure browser environments
+  // 1. Try import.meta.env (Vite)
+  // We use a try-catch block because accessing import.meta can be syntax-sensitive in some bundlers
   try {
-    if (typeof process !== 'undefined' && process.env) {
-      key = process.env.ImpactSim || 
-            process.env.REACT_APP_ImpactSim || 
-            process.env.API_KEY || 
-            process.env.REACT_APP_API_KEY;
+    // @ts-ignore
+    if (import.meta && import.meta.env) {
+      // @ts-ignore
+      key = import.meta.env.VITE_ImpactSim || import.meta.env.VITE_API_KEY || import.meta.env.ImpactSim;
     }
   } catch (e) {
-    // Ignore errors if process is not defined
+    // Ignore if import.meta is not supported
   }
 
   if (key) return key;
 
-  // 2. Check import.meta.env (Vite Standard)
+  // 2. Try process.env (Create React App / Node / Webpack)
   try {
-    // @ts-ignore
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-      // @ts-ignore
-      key = import.meta.env.ImpactSim || 
-            // @ts-ignore
-            import.meta.env.VITE_ImpactSim || 
-            // @ts-ignore
-            import.meta.env.API_KEY || 
-            // @ts-ignore
-            import.meta.env.VITE_API_KEY;
+    if (typeof process !== 'undefined' && process.env) {
+      key = process.env.REACT_APP_ImpactSim || 
+            process.env.REACT_APP_API_KEY || 
+            process.env.ImpactSim || 
+            process.env.API_KEY;
     }
   } catch (e) {
-    // Ignore errors if import.meta is not defined
+    // Ignore if process is not defined
   }
 
   return key;
@@ -45,7 +39,7 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    throw new Error("Missing API Key. Please ensure 'ImpactSim' (or 'VITE_ImpactSim') is set in your environment variables.");
+    throw new Error("Missing API Key. On Netlify, please ensure your environment variable is named 'VITE_ImpactSim' or 'REACT_APP_ImpactSim'.");
   }
 
   const ai = new GoogleGenAI({ apiKey: apiKey });

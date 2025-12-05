@@ -33,8 +33,9 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       const msg = err.message || "";
+      // Check for common API key issues
       if (msg.includes("Missing API Key") || msg.includes("API Key")) {
-        setError("API Key Error: Please set 'ImpactSim' (or 'VITE_ImpactSim') in your environment variables.");
+        setError("API Key Error: On Netlify, verify your environment variable is named 'VITE_ImpactSim' or 'REACT_APP_ImpactSim'. Unprefixed keys are not accessible.");
       } else {
         setError("Simulation failed to run. Please check your connection and try again.");
       }
