@@ -10,8 +10,14 @@ export const checkApiKeyStatus = () => {
 };
 
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-3-pro-preview";
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API Key not found in process.env.API_KEY");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
+  // Switched to gemini-2.5-flash for better stability with complex JSON schemas and to avoid 500 errors
+  const model = "gemini-2.5-flash";
 
   const prompt = `
     Act as a World-Class International Development Consultant and Sociologist. 
@@ -50,7 +56,7 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
       model: model,
       contents: prompt,
       config: {
-        temperature: 0.4, 
+        temperature: 0.2, 
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
