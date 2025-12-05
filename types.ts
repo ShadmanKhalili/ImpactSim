@@ -1,0 +1,78 @@
+
+export interface ProjectInput {
+  title: string;
+  location: string;
+  targetAudience: string;
+  sector: string;
+  budget: string;
+  duration: string;
+  description: string;
+  localPartner: string;
+  technologyLevel: string;
+}
+
+export interface Metric {
+  category: string;
+  score: number; // 0-100
+  reasoning: string;
+}
+
+export interface PivotSuggestion {
+  title: string;
+  modification: string;
+  rationale: string;
+}
+
+export interface TimelineEvent {
+  month: string;
+  title: string;
+  description: string;
+  sentimentScore: number; // 0 to 100 where 50 is neutral
+}
+
+export interface BudgetItem {
+  category: string;
+  percentage: number;
+}
+
+export interface Stakeholder {
+  group: string;
+  sentiment: number; // -100 (Strongly Oppose) to 100 (Strongly Support)
+  influence: string; // High, Medium, Low
+}
+
+export interface RiskAnalysis {
+  risk: string;
+  likelihood: number; // 1-10
+  severity: number; // 1-10
+}
+
+export interface ImpactProjection {
+  year: string;
+  social: number;
+  economic: number;
+  environmental: number;
+}
+
+export interface SimulationResult {
+  overallScore: number;
+  communitySentiment: number; // 0-100
+  sustainabilityScore: number; // 0-100
+  metrics: Metric[];
+  timeline: TimelineEvent[];
+  budgetBreakdown: BudgetItem[];
+  stakeholderAnalysis: Stakeholder[];
+  riskAnalysis: RiskAnalysis[];
+  longTermImpact: ImpactProjection[];
+  narrative: string;
+  risks: string[];
+  successFactors: string[];
+  pivots: PivotSuggestion[];
+}
+
+export enum SimulationStatus {
+  IDLE = 'IDLE',
+  LOADING = 'LOADING',
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR'
+}
