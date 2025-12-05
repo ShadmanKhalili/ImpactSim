@@ -10,10 +10,8 @@ export const checkApiKeyStatus = () => {
 };
 
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
-  // Directly use process.env.API_KEY as per guidelines. 
-  // Do not add fallback logic or UI prompts for the key.
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-2.5-flash";
+  const model = "gemini-3-pro-preview";
 
   const prompt = `
     Act as a World-Class International Development Consultant and Sociologist. 

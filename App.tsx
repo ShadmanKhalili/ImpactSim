@@ -24,8 +24,13 @@ const App: React.FC = () => {
   const [keyStatus, setKeyStatus] = useState<{hasKey: boolean, preview: string}>({hasKey: false, preview: 'Checking...'});
 
   useEffect(() => {
-    // Check API key on mount
-    setKeyStatus(checkApiKeyStatus());
+    // Check API key safely on mount
+    try {
+      setKeyStatus(checkApiKeyStatus());
+    } catch (e) {
+      console.error("Failed to check API key status", e);
+      setKeyStatus({ hasKey: false, preview: 'Error' });
+    }
   }, []);
 
   const handleSimulate = useCallback(async () => {
@@ -126,7 +131,7 @@ const App: React.FC = () => {
                 {!keyStatus.hasKey && (
                    <div className="mt-6 p-4 bg-white border border-red-100 rounded-lg text-sm text-center">
                      <p className="font-bold text-gray-800">API Key Missing</p>
-                     <p className="text-gray-600">Please configure the API_KEY environment variable.</p>
+                     <p className="text-gray-600">Please configure <code>VITE_ImpactSim</code> in your Deployment Settings.</p>
                    </div>
                 )}
               </div>
@@ -163,7 +168,7 @@ const App: React.FC = () => {
       <footer className="border-t border-gray-200 bg-white py-4 mt-auto">
          <div className="container mx-auto px-4 flex justify-between items-center text-xs text-gray-500">
            <div>
-             ImpactSim v1.0.4 &bull; NGO Feasibility Simulator
+             ImpactSim v1.0.5 &bull; NGO Feasibility Simulator
            </div>
            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
