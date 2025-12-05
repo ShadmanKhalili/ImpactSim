@@ -2,7 +2,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Support the custom Netlify environment variable 'ImpactSim' or fallback to default 'API_KEY'
+const apiKey = process.env.ImpactSim || process.env.API_KEY;
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
   const model = "gemini-2.5-flash";
