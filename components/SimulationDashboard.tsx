@@ -22,7 +22,7 @@ const Icons = {
   Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
 };
 
-const CustomRadarTooltip = ({ active, payload, label }: any) => {
+const CustomRadarTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -37,6 +37,8 @@ const CustomRadarTooltip = ({ active, payload, label }: any) => {
 
 export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result, onApplyPivot }) => {
   
+  if (!result) return null;
+
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-emerald-600';
     if (score >= 50) return 'text-amber-600';
@@ -113,6 +115,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Trending /> Sentiment Timeline</h3>
           </div>
           <div className="flex-grow">
+            {result.timeline && result.timeline.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={result.timeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -131,6 +134,9 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                 <Area type="monotone" dataKey="sentimentScore" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorSentiment)" name="Sentiment" />
               </AreaChart>
             </ResponsiveContainer>
+            ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No timeline data available</div>
+            )}
           </div>
         </div>
 
@@ -140,6 +146,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Users /> Stakeholder Alignment</h3>
            </div>
            <div className="flex-grow">
+            {result.stakeholderAnalysis && result.stakeholderAnalysis.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 layout="vertical"
@@ -166,6 +173,9 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
+             ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No stakeholder data available</div>
+            )}
           </div>
         </div>
       </div>
@@ -173,13 +183,14 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
       {/* New Visualizations Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up delay-400">
         
-        {/* Risk Matrix Chart (New) */}
+        {/* Risk Matrix Chart */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[420px]">
           <div className="flex items-center justify-between mb-2">
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Alert /> Risk Matrix</h3>
              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-md">Likelihood vs. Severity</span>
           </div>
           <div className="flex-grow">
+             {result.riskAnalysis && result.riskAnalysis.length > 0 ? (
              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -210,15 +221,19 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                   </Scatter>
                 </ScatterChart>
              </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No risk data available</div>
+             )}
           </div>
         </div>
 
-        {/* 5-Year Impact Projection (New) */}
+        {/* 5-Year Impact Projection */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[420px]">
            <div className="flex items-center justify-between mb-2">
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Trending /> 5-Year Impact Projection</h3>
            </div>
            <div className="flex-grow">
+             {result.longTermImpact && result.longTermImpact.length > 0 ? (
              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={result.longTermImpact} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -233,6 +248,9 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                    <Line type="monotone" dataKey="environmental" stroke="#8b5cf6" strokeWidth={3} dot={{r: 4}} activeDot={{r: 6}} name="Env. Sustainability" />
                 </LineChart>
              </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No projection data available</div>
+             )}
            </div>
         </div>
 
@@ -245,6 +263,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px]">
            <h3 className="text-gray-800 font-bold mb-4 flex items-center gap-2"><Icons.Target /> Feasibility Metrics</h3>
            <div className="flex-grow">
+            {result.metrics && result.metrics.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={result.metrics}>
                 <PolarGrid stroke="#e2e8f0" />
@@ -260,6 +279,9 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                 <Tooltip content={<CustomRadarTooltip />} />
               </RadarChart>
             </ResponsiveContainer>
+            ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No metric data available</div>
+             )}
           </div>
         </div>
 
@@ -268,6 +290,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
           <h3 className="text-gray-800 font-bold mb-2 flex items-center gap-2"><Icons.Money /> Projected Budget Breakdown</h3>
           <div className="flex flex-row h-full">
             <div className="flex-grow relative h-full w-1/2">
+              {result.budgetBreakdown && result.budgetBreakdown.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -288,9 +311,12 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                   <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
                 </PieChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm">No budget data available</div>
+             )}
             </div>
             <div className="w-1/2 overflow-y-auto max-h-[300px] custom-scrollbar pr-2 flex flex-col justify-center">
-              {result.budgetBreakdown.map((item, index) => (
+              {result.budgetBreakdown && result.budgetBreakdown.map((item, index) => (
                 <div key={index} className="flex items-center justify-between text-sm text-gray-600 mb-3 p-3 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-3">
                      <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm" style={{backgroundColor: COLORS[index % COLORS.length]}}></div>
@@ -312,7 +338,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
               Critical Risks
             </h3>
             <ul className="space-y-4">
-              {result.risks.map((risk, idx) => (
+              {result.risks && result.risks.map((risk, idx) => (
                 <li key={idx} className="flex items-start gap-3 text-gray-600 text-sm leading-relaxed">
                   <span className="text-rose-500 font-bold mt-0.5">•</span>
                   <span>{risk}</span>
@@ -327,7 +353,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
               Success Factors
             </h3>
             <ul className="space-y-4">
-              {result.successFactors.map((factor, idx) => (
+              {result.successFactors && result.successFactors.map((factor, idx) => (
                 <li key={idx} className="flex items-start gap-3 text-gray-600 text-sm leading-relaxed">
                   <span className="text-emerald-500 font-bold mt-0.5">•</span>
                   <span>{factor}</span>
@@ -344,7 +370,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
           Strategic Pivots
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {result.pivots.map((pivot, idx) => (
+          {result.pivots && result.pivots.map((pivot, idx) => (
             <button
               key={idx}
               onClick={() => onApplyPivot(pivot)}

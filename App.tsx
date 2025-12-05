@@ -24,17 +24,12 @@ const App: React.FC = () => {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [status, setStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
   const [error, setError] = useState<string | null>(null);
-  const [keyStatus, setKeyStatus] = useState<{hasKey: boolean, preview: string}>({hasKey: false, preview: 'Checking...'});
+  const [hasKey, setHasKey] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Check API key safely on mount
-    try {
-      setKeyStatus(checkApiKeyStatus());
-    } catch (e) {
-      console.error("Failed to check API key status", e);
-      setKeyStatus({ hasKey: false, preview: 'Error' });
-    }
+    const status = checkApiKeyStatus();
+    setHasKey(status.hasKey);
   }, []);
 
   // Effect to handle progress bar animation during loading
@@ -157,7 +152,7 @@ const App: React.FC = () => {
                 <p className="font-bold text-lg mb-2">Simulation Failed</p>
                 <p className="max-w-md whitespace-pre-wrap">{error}</p>
                 
-                {!keyStatus.hasKey && (
+                {!hasKey && (
                    <div className="mt-6 p-4 bg-white border border-red-100 rounded-lg text-sm text-center">
                      <p className="font-bold text-gray-800">API Key Missing</p>
                      <p className="text-gray-600">Please configure <code>VITE_ImpactSim</code> in your Deployment Settings.</p>
@@ -219,16 +214,16 @@ const App: React.FC = () => {
            </div>
            <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                 <span>API Status:</span>
-                 {keyStatus.hasKey ? (
+                 <span>System Status:</span>
+                 {hasKey ? (
                    <span className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                     Ready ({keyStatus.preview})
+                     Operational
                    </span>
                  ) : (
                    <span className="flex items-center gap-1 text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full">
                      <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                     Missing Key
+                     Configuration Required
                    </span>
                  )}
               </div>

@@ -9,6 +9,8 @@ interface ProjectFormProps {
   isLoading: boolean;
 }
 
+const STORAGE_KEY = 'impactSim_savedScenario';
+
 const PRESETS: ProjectInput[] = [
   {
     title: "Drone Medical Delivery",
@@ -77,16 +79,17 @@ const PRESETS: ProjectInput[] = [
   }
 ];
 
-const STORAGE_KEY = 'impactSim_savedScenario';
-
 export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSimulate, isLoading }) => {
   const [hasSavedScenario, setHasSavedScenario] = useState(false);
 
   useEffect(() => {
-    // Check if there is a saved scenario on mount
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setHasSavedScenario(true);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        setHasSavedScenario(true);
+      }
+    } catch (e) {
+      console.warn("LocalStorage access denied or unavailable.");
     }
   }, []);
 
@@ -106,20 +109,24 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
   };
 
   const handleSaveScenario = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
-    setHasSavedScenario(true);
-    alert("Scenario saved successfully!");
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+      setHasSavedScenario(true);
+      alert("Scenario saved successfully!");
+    } catch (e) {
+      alert("Could not save scenario (LocalStorage unavailable).");
+    }
   };
 
   const handleLoadScenario = () => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
         const parsed = JSON.parse(saved);
         setInput(parsed);
-      } catch (e) {
-        console.error("Failed to parse saved scenario", e);
       }
+    } catch (e) {
+      console.error("Failed to load scenario", e);
     }
   };
 
@@ -271,9 +278,9 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           <input 
             type="range" 
             name="initialRiskLevel"
-            min="1" 
-            max="10" 
-            step="1"
+            min={1} 
+            max={10} 
+            step={1}
             value={input.initialRiskLevel} 
             onChange={handleSliderChange}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
