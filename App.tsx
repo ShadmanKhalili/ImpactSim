@@ -32,7 +32,12 @@ const App: React.FC = () => {
       setStatus(SimulationStatus.SUCCESS);
     } catch (err: any) {
       console.error(err);
-      setError("Failed to generate simulation. Please check your API Key or try again.");
+      const msg = err.message || "";
+      if (msg.includes("Missing API Key") || msg.includes("API Key")) {
+        setError("API Key Error: Please set 'ImpactSim' (or 'VITE_ImpactSim') in your environment variables.");
+      } else {
+        setError("Simulation failed to run. Please check your connection and try again.");
+      }
       setStatus(SimulationStatus.ERROR);
     }
   }, [input]);

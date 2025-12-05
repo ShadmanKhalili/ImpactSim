@@ -2,12 +2,53 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
-// Support the custom Netlify environment variable 'ImpactSim' or fallback to default 'API_KEY'
-const apiKey = process.env.ImpactSim || process.env.API_KEY;
+// Helper to safely retrieve the API key from various build environments (Vite, CRA, Node)
+const getApiKey = (): string | undefined => {
+  let key: string | undefined = undefined;
 
-const ai = new GoogleGenAI({ apiKey: apiKey });
+  // 1. Check process.env (Standard Node/Webpack/CRA)
+  // We check typeof process to avoid ReferenceError in pure browser environments
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      key = process.env.ImpactSim || 
+            process.env.REACT_APP_ImpactSim || 
+            process.env.API_KEY || 
+            process.env.REACT_APP_API_KEY;
+    }
+  } catch (e) {
+    // Ignore errors if process is not defined
+  }
+
+  if (key) return key;
+
+  // 2. Check import.meta.env (Vite Standard)
+  try {
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      key = import.meta.env.ImpactSim || 
+            // @ts-ignore
+            import.meta.env.VITE_ImpactSim || 
+            // @ts-ignore
+            import.meta.env.API_KEY || 
+            // @ts-ignore
+            import.meta.env.VITE_API_KEY;
+    }
+  } catch (e) {
+    // Ignore errors if import.meta is not defined
+  }
+
+  return key;
+};
 
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    throw new Error("Missing API Key. Please ensure 'ImpactSim' (or 'VITE_ImpactSim') is set in your environment variables.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const model = "gemini-2.5-flash";
 
   const prompt = `
