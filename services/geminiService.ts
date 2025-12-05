@@ -1,48 +1,18 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
-// Helper to safely retrieve the API key
-const getApiKey = (): string | undefined => {
-  let key: string | undefined = undefined;
-
-  // 1. Try import.meta.env (Vite)
-  // We use a try-catch block because accessing import.meta can be syntax-sensitive in some bundlers
-  try {
-    // @ts-ignore
-    if (import.meta && import.meta.env) {
-      // @ts-ignore
-      key = import.meta.env.VITE_ImpactSim || import.meta.env.VITE_API_KEY || import.meta.env.ImpactSim;
-    }
-  } catch (e) {
-    // Ignore if import.meta is not supported
-  }
-
-  if (key) return key;
-
-  // 2. Try process.env (Create React App / Node / Webpack)
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      key = process.env.REACT_APP_ImpactSim || 
-            process.env.REACT_APP_API_KEY || 
-            process.env.ImpactSim || 
-            process.env.API_KEY;
-    }
-  } catch (e) {
-    // Ignore if process is not defined
-  }
-
-  return key;
+export const checkApiKeyStatus = () => {
+  const key = process.env.API_KEY;
+  return {
+    hasKey: !!key,
+    preview: key ? `${key.substring(0, 4)}...` : 'None'
+  };
 };
 
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
-  const apiKey = getApiKey();
-
-  if (!apiKey) {
-    throw new Error("Missing API Key. On Netlify, please ensure your environment variable is named 'VITE_ImpactSim' or 'REACT_APP_ImpactSim'.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: apiKey });
+  // Directly use process.env.API_KEY as per guidelines. 
+  // Do not add fallback logic or UI prompts for the key.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const model = "gemini-2.5-flash";
 
   const prompt = `
@@ -77,114 +47,119 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
     Return the response in JSON format conforming to the schema.
   `;
 
-  const response = await ai.models.generateContent({
-    model: model,
-    contents: prompt,
-    config: {
-      temperature: 0.4, 
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          overallScore: { type: Type.NUMBER, description: "Feasibility score 0-100." },
-          communitySentiment: { type: Type.NUMBER, description: "Predicted community acceptance score 0-100." },
-          sustainabilityScore: { type: Type.NUMBER, description: "Long-term sustainability score 0-100." },
-          metrics: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                category: { type: Type.STRING },
-                score: { type: Type.NUMBER },
-                reasoning: { type: Type.STRING },
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        temperature: 0.4, 
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            overallScore: { type: Type.NUMBER, description: "Feasibility score 0-100." },
+            communitySentiment: { type: Type.NUMBER, description: "Predicted community acceptance score 0-100." },
+            sustainabilityScore: { type: Type.NUMBER, description: "Long-term sustainability score 0-100." },
+            metrics: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  score: { type: Type.NUMBER },
+                  reasoning: { type: Type.STRING },
+                },
               },
             },
-          },
-          timeline: {
-            type: Type.ARRAY,
-            description: "6 key events throughout the project duration.",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                month: { type: Type.STRING, description: "e.g., 'Month 1', 'Month 3'" },
-                title: { type: Type.STRING, description: "Event title" },
-                description: { type: Type.STRING, description: "What happened" },
-                sentimentScore: { type: Type.NUMBER, description: "Community sentiment at this time (0-100)" },
+            timeline: {
+              type: Type.ARRAY,
+              description: "6 key events throughout the project duration.",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  month: { type: Type.STRING, description: "e.g., 'Month 1', 'Month 3'" },
+                  title: { type: Type.STRING, description: "Event title" },
+                  description: { type: Type.STRING, description: "What happened" },
+                  sentimentScore: { type: Type.NUMBER, description: "Community sentiment at this time (0-100)" },
+                }
               }
-            }
-          },
-          budgetBreakdown: {
-            type: Type.ARRAY,
-            description: "How the budget is likely utilized (including hidden costs like 'logistics overhead' or 'unforeseen repairs').",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                category: { type: Type.STRING },
-                percentage: { type: Type.NUMBER, description: "Percentage of total budget" },
+            },
+            budgetBreakdown: {
+              type: Type.ARRAY,
+              description: "How the budget is likely utilized (including hidden costs like 'logistics overhead' or 'unforeseen repairs').",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  percentage: { type: Type.NUMBER, description: "Percentage of total budget" },
+                }
               }
-            }
-          },
-          stakeholderAnalysis: {
-            type: Type.ARRAY,
-            description: "Analysis of different groups and their stance.",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                group: { type: Type.STRING, description: "e.g., 'Local Elders', 'Government Officials', 'Youth'" },
-                sentiment: { type: Type.NUMBER, description: "Negative (-100) to Positive (100)" },
-                influence: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
+            },
+            stakeholderAnalysis: {
+              type: Type.ARRAY,
+              description: "Analysis of different groups and their stance.",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  group: { type: Type.STRING, description: "e.g., 'Local Elders', 'Government Officials', 'Youth'" },
+                  sentiment: { type: Type.NUMBER, description: "Negative (-100) to Positive (100)" },
+                  influence: { type: Type.STRING, enum: ["High", "Medium", "Low"] },
+                }
               }
-            }
-          },
-          riskAnalysis: {
-             type: Type.ARRAY,
-             description: "Key risks mapped by likelihood and severity.",
-             items: {
-               type: Type.OBJECT,
-               properties: {
-                 risk: { type: Type.STRING },
-                 likelihood: { type: Type.NUMBER, description: "1 (Low) to 10 (High)" },
-                 severity: { type: Type.NUMBER, description: "1 (Low) to 10 (High)" },
+            },
+            riskAnalysis: {
+               type: Type.ARRAY,
+               description: "Key risks mapped by likelihood and severity.",
+               items: {
+                 type: Type.OBJECT,
+                 properties: {
+                   risk: { type: Type.STRING },
+                   likelihood: { type: Type.NUMBER, description: "1 (Low) to 10 (High)" },
+                   severity: { type: Type.NUMBER, description: "1 (Low) to 10 (High)" },
+                 }
                }
-             }
-          },
-          longTermImpact: {
-            type: Type.ARRAY,
-            description: "Projected impact over 5 years. Year 1 to Year 5.",
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                year: { type: Type.STRING, description: "e.g., 'Year 1'" },
-                social: { type: Type.NUMBER, description: "0-100" },
-                economic: { type: Type.NUMBER, description: "0-100" },
-                environmental: { type: Type.NUMBER, description: "0-100" },
+            },
+            longTermImpact: {
+              type: Type.ARRAY,
+              description: "Projected impact over 5 years. Year 1 to Year 5.",
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  year: { type: Type.STRING, description: "e.g., 'Year 1'" },
+                  social: { type: Type.NUMBER, description: "0-100" },
+                  economic: { type: Type.NUMBER, description: "0-100" },
+                  environmental: { type: Type.NUMBER, description: "0-100" },
+                }
               }
-            }
-          },
-          narrative: { type: Type.STRING, description: "A vivid summary of the simulation." },
-          risks: { type: Type.ARRAY, items: { type: Type.STRING } },
-          successFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
-          pivots: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                modification: { type: Type.STRING },
-                rationale: { type: Type.STRING },
+            },
+            narrative: { type: Type.STRING, description: "A vivid summary of the simulation." },
+            risks: { type: Type.ARRAY, items: { type: Type.STRING } },
+            successFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+            pivots: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  modification: { type: Type.STRING },
+                  rationale: { type: Type.STRING },
+                },
               },
             },
           },
+          required: ["overallScore", "communitySentiment", "sustainabilityScore", "metrics", "timeline", "budgetBreakdown", "stakeholderAnalysis", "riskAnalysis", "longTermImpact", "narrative", "risks", "successFactors", "pivots"],
         },
-        required: ["overallScore", "communitySentiment", "sustainabilityScore", "metrics", "timeline", "budgetBreakdown", "stakeholderAnalysis", "riskAnalysis", "longTermImpact", "narrative", "risks", "successFactors", "pivots"],
       },
-    },
-  });
+    });
 
-  const text = response.text;
-  if (!text) {
-    throw new Error("No response from AI");
+    const text = response.text;
+    if (!text) {
+      throw new Error("No response from AI");
+    }
+
+    return JSON.parse(text) as SimulationResult;
+  } catch (error: any) {
+     console.error("API Call Failed Details:", error);
+     throw new Error(error.message || "Unknown API Error");
   }
-
-  return JSON.parse(text) as SimulationResult;
 };

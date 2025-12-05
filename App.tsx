@@ -1,9 +1,8 @@
-
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ProjectForm } from './components/ProjectForm';
 import { SimulationDashboard } from './components/SimulationDashboard';
 import { ProjectInput, SimulationResult, SimulationStatus, PivotSuggestion } from './types';
-import { runSimulation } from './services/geminiService';
+import { runSimulation, checkApiKeyStatus } from './services/geminiService';
 
 const DEFAULT_PROJECT: ProjectInput = {
   title: "Solar Community Kitchen",
@@ -22,6 +21,12 @@ const App: React.FC = () => {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [status, setStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
   const [error, setError] = useState<string | null>(null);
+  const [keyStatus, setKeyStatus] = useState<{hasKey: boolean, preview: string}>({hasKey: false, preview: 'Checking...'});
+
+  useEffect(() => {
+    // Check API key on mount
+    setKeyStatus(checkApiKeyStatus());
+  }, []);
 
   const handleSimulate = useCallback(async () => {
     setStatus(SimulationStatus.LOADING);
@@ -35,9 +40,9 @@ const App: React.FC = () => {
       const msg = err.message || "";
       // Check for common API key issues
       if (msg.includes("Missing API Key") || msg.includes("API Key")) {
-        setError("API Key Error: On Netlify, verify your environment variable is named 'VITE_ImpactSim' or 'REACT_APP_ImpactSim'. Unprefixed keys are not accessible.");
+        setError("API Key Error: " + msg);
       } else {
-        setError("Simulation failed to run. Please check your connection and try again.");
+        setError("Simulation failed: " + msg);
       }
       setStatus(SimulationStatus.ERROR);
     }
@@ -54,7 +59,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 pb-12 font-inter">
+    <div className="min-h-screen bg-gray-50 text-gray-900 font-inter flex flex-col">
       {/* Header */}
       <header className="bg-slate-900 text-white py-6 shadow-md">
         <div className="container mx-auto px-4 flex items-center justify-between">
@@ -74,7 +79,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 mt-8">
+      <main className="container mx-auto px-4 mt-8 flex-grow pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           {/* Left Column: Input */}
@@ -116,7 +121,14 @@ const App: React.FC = () => {
               <div className="bg-red-50 text-red-700 p-8 rounded-xl border border-red-200 text-center flex flex-col items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-50"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 <p className="font-bold text-lg mb-2">Simulation Failed</p>
-                <p className="max-w-md">{error}</p>
+                <p className="max-w-md whitespace-pre-wrap">{error}</p>
+                
+                {!keyStatus.hasKey && (
+                   <div className="mt-6 p-4 bg-white border border-red-100 rounded-lg text-sm text-center">
+                     <p className="font-bold text-gray-800">API Key Missing</p>
+                     <p className="text-gray-600">Please configure the API_KEY environment variable.</p>
+                   </div>
+                )}
               </div>
             )}
 
@@ -144,9 +156,33 @@ const App: React.FC = () => {
               />
             )}
           </div>
-
         </div>
       </main>
+
+      {/* System Status Footer */}
+      <footer className="border-t border-gray-200 bg-white py-4 mt-auto">
+         <div className="container mx-auto px-4 flex justify-between items-center text-xs text-gray-500">
+           <div>
+             ImpactSim v1.0.4 &bull; NGO Feasibility Simulator
+           </div>
+           <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                 <span>API Status:</span>
+                 {keyStatus.hasKey ? (
+                   <span className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
+                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                     Ready ({keyStatus.preview})
+                   </span>
+                 ) : (
+                   <span className="flex items-center gap-1 text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full">
+                     <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                     Missing Key
+                   </span>
+                 )}
+              </div>
+           </div>
+         </div>
+      </footer>
     </div>
   );
 };
