@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
 /**
@@ -37,9 +37,19 @@ export const checkApiKeyStatus = () => {
 
 /**
  * Cleans the raw text response from Gemini to ensure valid JSON parsing.
- * Removes markdown code blocks (```json ... ```).
+ * Uses Regex to extract the first JSON object found.
  */
 const cleanJsonResponse = (text: string): string => {
+  try {
+    // Attempt to find the first JSON object in the response
+    const match = text.match(/\{[\s\S]*\}/);
+    if (match) {
+      return match[0];
+    }
+  } catch (e) {
+    // Fallback to simple cleanup if regex fails
+  }
+  
   let cleaned = text.trim();
   if (cleaned.startsWith('```json')) {
     cleaned = cleaned.substring(7);
@@ -62,22 +72,18 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
   const model = "gemini-2.5-flash";
 
   const prompt = `
-    Analyze this NGO project proposal based on local context, culture, and economics.
+    Analyze this NGO project proposal.
+    Project: ${input.title}
+    Location: ${input.location} (${input.sector})
+    Budget: ${input.budget} (${input.fundingSource})
+    Duration: ${input.duration}
+    Tech: ${input.technologyLevel}
+    Partner: ${input.localPartner}
+    Risk: ${input.initialRiskLevel}/10
+    Desc: ${input.description}
 
-    Project:
-    - Title: ${input.title}
-    - Location: ${input.location} (${input.sector})
-    - Budget: ${input.budget} (${input.fundingSource})
-    - Duration: ${input.duration}
-    - Tech: ${input.technologyLevel}
-    - Local Partner: ${input.localPartner}
-    - User Risk Score: ${input.initialRiskLevel}/10
-    - Description: ${input.description}
-
-    Task:
-    Simulate the project's lifecycle. Be critical. Consider corruption, cultural mismatch, logistics, and sustainability.
-    
-    Output strictly valid JSON matching this schema:
+    Task: Simulate lifecycle. Consider corruption, culture, logistics.
+    Output VALID JSON:
     {
       "overallScore": number (0-100),
       "communitySentiment": number (0-100),
@@ -88,7 +94,7 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
       "stakeholderAnalysis": [{ "group": string, "sentiment": number (-100 to 100), "influence": "High"|"Medium"|"Low" }],
       "riskAnalysis": [{ "risk": string, "likelihood": number (1-10), "severity": number (1-10) }],
       "longTermImpact": [{ "year": string, "social": number, "economic": number, "environmental": number }],
-      "narrative": string (executive summary),
+      "narrative": string,
       "risks": [string],
       "successFactors": [string],
       "pivots": [{ "title": string, "modification": string, "rationale": string }]

@@ -115,7 +115,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Trending /> Sentiment Timeline</h3>
           </div>
           <div className="flex-grow">
-            {result.timeline && result.timeline.length > 0 ? (
+            {result.timeline?.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={result.timeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
@@ -146,7 +146,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Users /> Stakeholder Alignment</h3>
            </div>
            <div className="flex-grow">
-            {result.stakeholderAnalysis && result.stakeholderAnalysis.length > 0 ? (
+            {result.stakeholderAnalysis?.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 layout="vertical"
@@ -190,7 +190,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-md">Likelihood vs. Severity</span>
           </div>
           <div className="flex-grow">
-             {result.riskAnalysis && result.riskAnalysis.length > 0 ? (
+             {result.riskAnalysis?.length > 0 ? (
              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -233,7 +233,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <h3 className="text-gray-800 font-bold flex items-center gap-2"><Icons.Trending /> 5-Year Impact Projection</h3>
            </div>
            <div className="flex-grow">
-             {result.longTermImpact && result.longTermImpact.length > 0 ? (
+             {result.longTermImpact?.length > 0 ? (
              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={result.longTermImpact} margin={{ top: 20, right: 30, left: -10, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -263,7 +263,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[400px]">
            <h3 className="text-gray-800 font-bold mb-4 flex items-center gap-2"><Icons.Target /> Feasibility Metrics</h3>
            <div className="flex-grow">
-            {result.metrics && result.metrics.length > 0 ? (
+            {result.metrics?.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={result.metrics}>
                 <PolarGrid stroke="#e2e8f0" />
@@ -290,7 +290,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
           <h3 className="text-gray-800 font-bold mb-2 flex items-center gap-2"><Icons.Money /> Projected Budget Breakdown</h3>
           <div className="flex flex-row h-full">
             <div className="flex-grow relative h-full w-1/2">
-              {result.budgetBreakdown && result.budgetBreakdown.length > 0 ? (
+              {result.budgetBreakdown?.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -316,7 +316,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              )}
             </div>
             <div className="w-1/2 overflow-y-auto max-h-[300px] custom-scrollbar pr-2 flex flex-col justify-center">
-              {result.budgetBreakdown && result.budgetBreakdown.map((item, index) => (
+              {result.budgetBreakdown?.map((item, index) => (
                 <div key={index} className="flex items-center justify-between text-sm text-gray-600 mb-3 p-3 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-3">
                      <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm" style={{backgroundColor: COLORS[index % COLORS.length]}}></div>
@@ -338,7 +338,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
               Critical Risks
             </h3>
             <ul className="space-y-4">
-              {result.risks && result.risks.map((risk, idx) => (
+              {result.risks?.map((risk, idx) => (
                 <li key={idx} className="flex items-start gap-3 text-gray-600 text-sm leading-relaxed">
                   <span className="text-rose-500 font-bold mt-0.5">•</span>
                   <span>{risk}</span>
@@ -353,7 +353,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
               Success Factors
             </h3>
             <ul className="space-y-4">
-              {result.successFactors && result.successFactors.map((factor, idx) => (
+              {result.successFactors?.map((factor, idx) => (
                 <li key={idx} className="flex items-start gap-3 text-gray-600 text-sm leading-relaxed">
                   <span className="text-emerald-500 font-bold mt-0.5">•</span>
                   <span>{factor}</span>
@@ -370,7 +370,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
           Strategic Pivots
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {result.pivots && result.pivots.map((pivot, idx) => (
+          {result.pivots?.map((pivot, idx) => (
             <button
               key={idx}
               onClick={() => onApplyPivot(pivot)}

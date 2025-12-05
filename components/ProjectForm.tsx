@@ -127,6 +127,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
       }
     } catch (e) {
       console.error("Failed to load scenario", e);
+      alert("Failed to load saved scenario.");
     }
   };
 
