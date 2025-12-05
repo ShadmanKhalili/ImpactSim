@@ -1,8 +1,32 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
+export const getSafeKey = () => {
+  // 1. Try process.env (Standard)
+  if (typeof process !== 'undefined' && process.env) {
+     if (process.env.API_KEY) return process.env.API_KEY;
+     if (process.env.VITE_ImpactSim) return process.env.VITE_ImpactSim;
+     if (process.env.REACT_APP_ImpactSim) return process.env.REACT_APP_ImpactSim;
+  }
+  
+  // 2. Try import.meta.env (Vite)
+  // Note: We use a safe check to avoid syntax errors in non-module environments
+  try {
+     // @ts-ignore
+     if (import.meta && import.meta.env) {
+         // @ts-ignore
+         return import.meta.env.VITE_ImpactSim;
+     }
+  } catch(e) {
+     // Ignore errors if import.meta is not supported
+  }
+
+  return undefined;
+};
+
 export const checkApiKeyStatus = () => {
-  const key = process.env.API_KEY;
+  const key = getSafeKey();
   return {
     hasKey: !!key,
     preview: key ? `${key.substring(0, 4)}...` : 'None'
@@ -12,7 +36,7 @@ export const checkApiKeyStatus = () => {
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API Key not found in process.env.API_KEY");
+    throw new Error("Missing API Key. Please ensure VITE_ImpactSim is set in your environment variables.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -29,9 +53,11 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
     - Location: ${input.location}
     - Target Audience: ${input.targetAudience}
     - Estimated Budget: ${input.budget}
+    - Funding Source: ${input.fundingSource}
     - Duration: ${input.duration}
     - Local Partner Strategy: ${input.localPartner}
     - Technology Level: ${input.technologyLevel}
+    - Initial Risk Assessment (User's view): ${input.initialRiskLevel}/10
     - Description: ${input.description}
 
     Your task is to simulate how this project will likely play out in the real world.
@@ -40,6 +66,8 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
     Specific Instruction:
     - If the "Local Partner" is weak or missing, increase the risk of community rejection.
     - If "Technology Level" is high in a low-literacy area, assume adoption failure unless training is extensive.
+    - Factor in the "Funding Source" (e.g., Grants may be slow, Donations unpredictable) into the budget breakdown and sustainability.
+    - Use the "Initial Risk Assessment" as a baseline but feel free to disagree if your analysis proves it is higher or lower.
     
     Generate a simulation that includes:
     1. A month-by-month timeline of likely events (including setbacks).

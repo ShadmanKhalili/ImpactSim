@@ -22,6 +22,19 @@ const Icons = {
   Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
 };
 
+const CustomRadarTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-100 shadow-xl rounded-lg max-w-[250px]">
+        <p className="font-bold text-gray-800 text-sm mb-1">{data.category}: <span className="text-purple-600">{data.score}</span></p>
+        <p className="text-xs text-gray-600 leading-snug">{data.reasoning}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result, onApplyPivot }) => {
   
   const getScoreColor = (score: number) => {
@@ -142,9 +155,14 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                 />
                 <ReferenceLine x={0} stroke="#cbd5e1" strokeWidth={2} />
                 <Bar dataKey="sentiment" name="Support Level" barSize={24} radius={[4, 4, 4, 4]}>
-                  {result.stakeholderAnalysis.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.sentiment > 0 ? '#10b981' : '#ef4444'} />
-                  ))}
+                  {result.stakeholderAnalysis.map((entry, index) => {
+                    // Diverging color scale: Red for negative, Blue for neutral, Green for positive
+                    let color = '#3b82f6'; // neutral blue
+                    if (entry.sentiment > 20) color = '#10b981'; // green
+                    if (entry.sentiment < -20) color = '#ef4444'; // red
+                    if (entry.sentiment >= -20 && entry.sentiment <= 20) color = '#94a3b8'; // greyish for very neutral
+                    return <Cell key={`cell-${index}`} fill={color} />;
+                  })}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -239,9 +257,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                   fill="#8b5cf6"
                   fillOpacity={0.4}
                 />
-                <Tooltip 
-                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
+                <Tooltip content={<CustomRadarTooltip />} />
               </RadarChart>
             </ResponsiveContainer>
           </div>

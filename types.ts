@@ -9,6 +9,8 @@ export interface ProjectInput {
   description: string;
   localPartner: string;
   technologyLevel: string;
+  fundingSource: string;
+  initialRiskLevel: number; // 1-10
 }
 
 export interface Metric {

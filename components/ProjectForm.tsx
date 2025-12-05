@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProjectInput } from '../types';
 
 interface ProjectFormProps {
@@ -16,9 +16,11 @@ const PRESETS: ProjectInput[] = [
     targetAudience: "Remote Clinics",
     sector: "Healthcare / Tech",
     budget: "$250,000",
+    fundingSource: "International Grant",
     duration: "18 Months",
     localPartner: "Ministry of Health",
     technologyLevel: "High Tech",
+    initialRiskLevel: 6,
     description: "Using autonomous drones to deliver blood and vaccines to hard-to-reach rural clinics to reduce spoilage and transit time."
   },
   {
@@ -27,9 +29,11 @@ const PRESETS: ProjectInput[] = [
     targetAudience: "Urban Commuters",
     sector: "Infrastructure",
     budget: "$500,000",
+    fundingSource: "Public-Private Partnership",
     duration: "2 Years",
     localPartner: "Municipal Corporation",
     technologyLevel: "Medium Tech",
+    initialRiskLevel: 4,
     description: "Collecting plastic waste from slums and melting it down to create durable, water-resistant road surfaces."
   },
   {
@@ -38,9 +42,11 @@ const PRESETS: ProjectInput[] = [
     targetAudience: "Primary School Students",
     sector: "Education",
     budget: "$150,000",
+    fundingSource: "Donation",
     duration: "1 Year",
     localPartner: "None (Direct Implementation)",
     technologyLevel: "High Tech",
+    initialRiskLevel: 8,
     description: "Distributing low-cost tablets pre-loaded with educational software to nomadic communities where school attendance is irregular."
   },
   {
@@ -49,9 +55,11 @@ const PRESETS: ProjectInput[] = [
     targetAudience: "Hillside Communities",
     sector: "WASH",
     budget: "$75,000",
+    fundingSource: "NGO Funds",
     duration: "9 Months",
     localPartner: "Community Leaders",
     technologyLevel: "Low Tech",
+    initialRiskLevel: 3,
     description: "Installing large mesh nets to capture moisture from coastal fog, converting it into potable water for communities without plumbing."
   },
   {
@@ -60,99 +68,59 @@ const PRESETS: ProjectInput[] = [
     targetAudience: "Rural Households",
     sector: "Energy / Livelihood",
     budget: "$50,000",
+    fundingSource: "Micro-finance",
     duration: "1 Year",
     localPartner: "Local Women's Coop",
     technologyLevel: "Medium Tech",
+    initialRiskLevel: 5,
     description: "A centralized solar-powered kitchen facility in the village center. Families will bring their raw food to the center to cook on clean stoves for a small fee."
-  },
-  {
-    title: "AI Crop Diagnosis App",
-    location: "Rural Ethiopia",
-    targetAudience: "Smallholder Farmers",
-    sector: "Agriculture",
-    budget: "$120,000",
-    duration: "2 Years",
-    localPartner: "University Extension",
-    technologyLevel: "High Tech",
-    description: "A mobile app that uses image recognition to diagnose crop diseases. Requires farmers to have smartphones and data connectivity."
-  },
-  {
-    title: "Micro-Insurance for Flood Victims",
-    location: "Sindh, Pakistan",
-    targetAudience: "Riverine Communities",
-    sector: "Finance",
-    budget: "$200,000",
-    duration: "3 Years",
-    localPartner: "Local NGO",
-    technologyLevel: "Medium Tech",
-    description: "Parametric insurance that pays out automatically via mobile money when satellite data detects flooding, bypassing claims adjusters."
-  },
-  {
-    title: "Biogas Digesters from Livestock",
-    location: "Sichuan, China",
-    targetAudience: "Pig Farmers",
-    sector: "Energy",
-    budget: "$300,000",
-    duration: "18 Months",
-    localPartner: "Government Bureau",
-    technologyLevel: "Medium Tech",
-    description: "Installing underground tanks to convert pig manure into methane gas for cooking and heating, reducing coal usage."
-  },
-  {
-    title: "Menstrual Hygiene Vending Machines",
-    location: "Rural Rajasthan, India",
-    targetAudience: "Adolescent Girls",
-    sector: "Health / Gender",
-    budget: "$40,000",
-    duration: "1 Year",
-    localPartner: "School Boards",
-    technologyLevel: "Low Tech",
-    description: "Installing coin-operated sanitary pad vending machines in school bathrooms to improve attendance among girls."
-  },
-  {
-    title: "Reforestation via Seed Bombing",
-    location: "Amazon Rainforest, Brazil",
-    targetAudience: "Global Climate",
-    sector: "Environment",
-    budget: "$1,000,000",
-    duration: "5 Years",
-    localPartner: "None (International Team)",
-    technologyLevel: "High Tech",
-    description: "Using light aircraft to drop thousands of seed 'bombs' (encased in clay/compost) over deforested areas to accelerate regrowth."
-  },
-  {
-    title: "Cash Transfers for Girls' Education",
-    location: "Kandahar, Afghanistan",
-    targetAudience: "Families of girls aged 10-15",
-    sector: "Education / Cash",
-    budget: "$500,000",
-    duration: "2 Years",
-    localPartner: "Religious Elders",
-    technologyLevel: "Low Tech",
-    description: "Providing unconditional cash grants to families who allow their daughters to attend home-based schooling."
-  },
-  {
-    title: "Urban Vertical Farming",
-    location: "Detroit, USA",
-    targetAudience: "Food Deserts",
-    sector: "Agriculture",
-    budget: "$800,000",
-    duration: "3 Years",
-    localPartner: "Community Center",
-    technologyLevel: "High Tech",
-    description: "Repurposing abandoned warehouses into high-tech hydroponic vertical farms to provide fresh greens to local neighborhoods."
   }
 ];
 
+const STORAGE_KEY = 'impactSim_savedScenario';
+
 export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSimulate, isLoading }) => {
+  const [hasSavedScenario, setHasSavedScenario] = useState(false);
+
+  useEffect(() => {
+    // Check if there is a saved scenario on mount
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      setHasSavedScenario(true);
+    }
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setInput(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setInput(prev => ({ ...prev, [name]: parseInt(value, 10) }));
+  };
+
   const handleRandomize = () => {
     const randomProject = PRESETS[Math.floor(Math.random() * PRESETS.length)];
     setInput(randomProject);
+  };
+
+  const handleSaveScenario = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(input));
+    setHasSavedScenario(true);
+    alert("Scenario saved successfully!");
+  };
+
+  const handleLoadScenario = () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setInput(parsed);
+      } catch (e) {
+        console.error("Failed to parse saved scenario", e);
+      }
+    }
   };
 
   return (
@@ -168,7 +136,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           title="Auto-fill with a random scenario"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-          Random Scenario
+          Random
         </button>
       </div>
 
@@ -247,6 +215,18 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
            </div>
         </div>
 
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Funding Source</label>
+          <input
+            type="text"
+            name="fundingSource"
+            value={input.fundingSource}
+            onChange={handleChange}
+            placeholder="e.g., Grant, Gov Funding, Donation"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-sm"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Local Partner</label>
@@ -282,6 +262,29 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         </div>
 
         <div>
+          <div className="flex justify-between items-end mb-1">
+             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Risk Likelihood</label>
+             <span className={`text-xs font-bold px-2 py-0.5 rounded ${input.initialRiskLevel >= 7 ? 'bg-red-100 text-red-600' : input.initialRiskLevel >= 4 ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
+               {input.initialRiskLevel}/10
+             </span>
+          </div>
+          <input 
+            type="range" 
+            name="initialRiskLevel"
+            min="1" 
+            max="10" 
+            step="1"
+            value={input.initialRiskLevel} 
+            onChange={handleSliderChange}
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+          <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+            <span>Safe</span>
+            <span>Risky</span>
+          </div>
+        </div>
+
+        <div>
           <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description & Methodology</label>
           <textarea
             name="description"
@@ -291,6 +294,23 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             placeholder="Describe how the project works..."
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none text-sm leading-relaxed"
           />
+        </div>
+
+        <div className="flex gap-2 mb-2">
+           <button
+             onClick={handleSaveScenario}
+             className="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors border border-gray-300"
+           >
+             Save Scenario
+           </button>
+           {hasSavedScenario && (
+             <button
+               onClick={handleLoadScenario}
+               className="flex-1 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-colors border border-gray-300"
+             >
+               Load Saved
+             </button>
+           )}
         </div>
 
         <button

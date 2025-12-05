@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { ProjectForm } from './components/ProjectForm';
 import { SimulationDashboard } from './components/SimulationDashboard';
@@ -13,6 +14,8 @@ const DEFAULT_PROJECT: ProjectInput = {
   duration: "1 Year",
   localPartner: "Local Women's Coop",
   technologyLevel: "Medium Tech",
+  fundingSource: "International Grant",
+  initialRiskLevel: 5,
   description: "A centralized solar-powered kitchen facility in the village center. The goal is to reduce household biomass fuel consumption. Families will bring their raw food to the center to cook on clean stoves for a small fee."
 };
 
@@ -22,6 +25,7 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
   const [error, setError] = useState<string | null>(null);
   const [keyStatus, setKeyStatus] = useState<{hasKey: boolean, preview: string}>({hasKey: false, preview: 'Checking...'});
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Check API key safely on mount
@@ -33,8 +37,26 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Effect to handle progress bar animation during loading
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (status === SimulationStatus.LOADING) {
+      interval = setInterval(() => {
+        setProgress((prev) => {
+          // Fast at first, then slows down as it approaches 95%
+          if (prev >= 95) return 95;
+          const remaining = 100 - prev;
+          const jump = Math.max(0.5, remaining * 0.05 * Math.random() * 5); 
+          return prev + jump;
+        });
+      }, 400);
+    }
+    return () => clearInterval(interval);
+  }, [status]);
+
   const handleSimulate = useCallback(async () => {
     setStatus(SimulationStatus.LOADING);
+    setProgress(0);
     setError(null);
     try {
       const data = await runSimulation(input);
@@ -61,6 +83,13 @@ const App: React.FC = () => {
     
     // Smooth scroll to top to show form changed
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getLoadingText = (p: number) => {
+    if (p < 25) return "Initializing local context parameters...";
+    if (p < 50) return "Analyzing cultural norms and logistical constraints...";
+    if (p < 75) return "Calculating budget breakdown and financial risks...";
+    return "Finalizing impact projections and stakeholder map...";
   };
 
   return (
@@ -139,17 +168,35 @@ const App: React.FC = () => {
 
             {status === SimulationStatus.LOADING && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 min-h-[500px] flex flex-col items-center justify-center">
-                 <div className="relative">
-                   <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-blue-600 mb-6"></div>
-                   <div className="absolute top-0 left-0 h-20 w-20 flex items-center justify-center">
-                     <div className="h-10 w-10 bg-blue-100 rounded-full animate-pulse"></div>
+                 <div className="relative mb-8">
+                   <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
+                   <div className="relative bg-white p-4 rounded-full shadow-sm border border-blue-100">
+                     <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                     </svg>
                    </div>
                  </div>
-                 <h3 className="text-xl font-medium text-gray-800 animate-pulse">Running Simulation Model...</h3>
-                 <div className="mt-4 space-y-2 text-center text-sm text-gray-500 max-w-xs">
-                    <p className="animate-fade-in-up" style={{animationDelay: '0.5s'}}>Analyzing cultural constraints...</p>
-                    <p className="animate-fade-in-up" style={{animationDelay: '1.5s'}}>Calculating budget inefficiencies...</p>
-                    <p className="animate-fade-in-up" style={{animationDelay: '2.5s'}}>Mapping stakeholder influence...</p>
+                 
+                 <h3 className="text-xl font-bold text-gray-800 mb-6">Running Simulation Model...</h3>
+                 
+                 <div className="w-full max-w-md space-y-2">
+                   <div className="flex justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                     <span>Progress</span>
+                     <span>{Math.round(progress)}%</span>
+                   </div>
+                   <div className="h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                     <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300 ease-out"
+                        style={{ width: `${progress}%` }}
+                     ></div>
+                   </div>
+                 </div>
+
+                 <div className="mt-8 h-8 text-center w-full">
+                    <p className="text-sm font-medium text-gray-600 animate-fade-in transition-all duration-300">
+                       {getLoadingText(progress)}
+                    </p>
                  </div>
               </div>
             )}
