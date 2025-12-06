@@ -17,22 +17,35 @@ const Icons = {
   Alert: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
   Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
   Zap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-  ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+  ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
+  Crosshair: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const data = payload[0].payload;
     return (
-      <div className="bg-slate-900 p-4 border border-slate-700 shadow-2xl rounded-xl z-50">
+      <div className="bg-slate-900 p-4 border border-slate-700 shadow-2xl rounded-xl z-50 min-w-[150px]">
         {label && <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-2 font-bold">{label}</p>}
+        {data.group && (
+           <p className="font-bold text-white text-sm mb-2 border-b border-slate-700 pb-2">{data.group}</p>
+        )}
         {payload.map((entry: any, idx: number) => (
-          <div key={idx} className="flex items-center gap-2 mb-1 last:mb-0">
-             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }}></div>
-             <p className="font-bold text-white text-sm">
-               {entry.name}: <span className="font-mono text-indigo-300">{entry.value}</span>
-             </p>
+          <div key={idx} className="flex items-center justify-between gap-4 mb-1 last:mb-0">
+             <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }}></div>
+                <span className="text-slate-300 text-xs font-medium">{entry.name}</span>
+             </div>
+             <span className="font-mono text-indigo-300 text-xs font-bold">{typeof entry.value === 'number' && entry.value % 1 !== 0 ? entry.value.toFixed(2) : entry.value}</span>
           </div>
         ))}
+        {data.alignment && (
+           <div className="mt-2 text-xs font-bold">
+              <span className={data.alignment === 'Support' ? 'text-emerald-400' : data.alignment === 'Oppose' ? 'text-rose-400' : 'text-amber-400'}>
+                {data.alignment}
+              </span>
+           </div>
+        )}
       </div>
     );
   }
@@ -146,7 +159,8 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <div className="flex justify-between items-start">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest text-blue-600 mb-2">Community Buy-in</p>
-                  <h2 className="text-5xl font-black text-slate-800 tracking-tight">{result.communitySentiment}%</h2>
+                  {/* Changed to 0.00 scale display */}
+                  <h2 className="text-5xl font-black text-slate-800 tracking-tight">{result.communitySentiment?.toFixed(2)}</h2>
                 </div>
                 <div className="p-3 bg-blue-50 text-blue-700 rounded-2xl"><Icons.Users /></div>
              </div>
@@ -222,7 +236,8 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tick={{fontSize: 11, fill: '#64748b', fontWeight: 700}} axisLine={false} tickLine={false} dy={10} />
-                      <YAxis domain={[0, 100]} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} axisLine={false} tickLine={false} />
+                      {/* Domain 0 to 1 for new sentiment scale */}
+                      <YAxis domain={[0, 1]} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '4 4' }} />
                       <Area type="monotone" dataKey="sentimentScore" stroke="#3b82f6" strokeWidth={4} fill="url(#colorSentiment)" animationDuration={1000} />
                     </AreaChart>
@@ -232,25 +247,31 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
 
               <div className="glass-panel p-8 rounded-3xl shadow-sm border border-white h-[420px] flex flex-col bg-white">
                  <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-sm uppercase tracking-wide">
-                   <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Stakeholder Map
+                   <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Stakeholder Power-Interest Grid
                  </h3>
                  <div className="flex-grow">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart layout="vertical" data={result.stakeholderAnalysis} margin={{ top: 0, right: 30, left: 30, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                      <XAxis type="number" domain={[-100, 100]} hide />
-                      <YAxis dataKey="group" type="category" width={110} tick={{fontSize: 11, fontWeight: 700, fill: '#475569'}} tickLine={false} axisLine={false} />
-                      <Tooltip content={<CustomTooltip />} cursor={{ fill: '#f8fafc', opacity: 0.8, radius: 4 }} />
-                      <ReferenceLine x={0} stroke="#cbd5e1" strokeDasharray="3 3" />
-                      <Bar dataKey="sentiment" barSize={24} radius={[6, 6, 6, 6]} animationDuration={1000}>
-                        {result.stakeholderAnalysis?.map((entry, index) => {
-                          let color = '#94a3b8';
-                          if (entry.sentiment > 25) color = '#10b981';
-                          if (entry.sentiment < -25) color = '#ef4444';
-                          return <Cell key={`cell-${index}`} fill={color} />;
-                        })}
-                      </Bar>
-                    </BarChart>
+                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" dataKey="interest" name="Interest" domain={[0, 10]} label={{ value: 'Interest', position: 'bottom', offset: 0, fontSize: 10, fill: '#94a3b8' }} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} />
+                      <YAxis type="number" dataKey="power" name="Power" domain={[0, 10]} label={{ value: 'Power', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#94a3b8' }} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} />
+                      <ZAxis range={[150, 400]} /> {/* Increase bubble size */}
+                      <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
+                      {/* Quadrant Lines */}
+                      <ReferenceLine x={5} stroke="#cbd5e1" strokeDasharray="3 3" />
+                      <ReferenceLine y={5} stroke="#cbd5e1" strokeDasharray="3 3" />
+                      <Scatter name="Stakeholders" data={result.stakeholderAnalysis} animationDuration={1000}>
+                         {result.stakeholderAnalysis?.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.alignment === 'Support' ? '#10b981' : entry.alignment === 'Oppose' ? '#ef4444' : '#f59e0b'} 
+                              fillOpacity={0.8} 
+                              stroke="white" 
+                              strokeWidth={2} 
+                            />
+                         ))}
+                      </Scatter>
+                    </ScatterChart>
                   </ResponsiveContainer>
                 </div>
               </div>

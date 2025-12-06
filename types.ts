@@ -31,7 +31,7 @@ export interface TimelineEvent {
   month: string;
   title: string;
   description: string;
-  sentimentScore: number; // 0 to 100 where 50 is neutral
+  sentimentScore: number; // 0.00 to 1.00
 }
 
 export interface BudgetItem {
@@ -41,8 +41,9 @@ export interface BudgetItem {
 
 export interface Stakeholder {
   group: string;
-  sentiment: number; // -100 (Strongly Oppose) to 100 (Strongly Support)
-  influence: string; // High, Medium, Low
+  power: number; // 1-10
+  interest: number; // 1-10
+  alignment: 'Oppose' | 'Neutral' | 'Support';
 }
 
 export interface RiskAnalysis {
@@ -68,7 +69,7 @@ export interface ScheduleItem {
 export interface SimulationResult {
   // Stage 1: Immediate Summary
   overallScore: number;
-  communitySentiment: number; // 0-100
+  communitySentiment: number; // 0.00 - 1.00
   sustainabilityScore: number; // 0-100
   narrative: string;
   successFactors: string[];

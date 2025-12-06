@@ -40,16 +40,16 @@ export const runSimulationStage1 = async (input: ProjectInput): Promise<Partial<
     ${historyContext}
 
     Scoring Heuristics (Be Strict):
-    - Base Score: 50.
-    - **Technical Risk**: If Tech is "High" but Team is "New/Volunteer", deduct 20 points.
+    - Base Feasibility Score: 50/100.
+    - **Community Buy-in (Sentiment)**: Scale 0.00 to 1.00. (e.g., 0.20 is hostile, 0.85 is welcoming).
+    - **Technical Risk**: If Tech is "High" but Team is "New/Volunteer", deduct 20 points from Feasibility.
     - **Context Mismatch**: If Location is rural/remote and Tech requires stable internet/power (without solar mentioned), deduct 15 points.
     - **Budget Realism**: If Budget is <$10k for >1 year duration, deduct 10 points (Unsustainable).
-    - **Local Buy-in**: If Local Partner is "None", deduct 10 points.
     - **Experience**: If Team is "Expert", add 15 points.
 
     Output:
-    1. Overall Score (0-100).
-    2. Sentiment Score (0-100).
+    1. Overall Feasibility Score (0-100).
+    2. Community Buy-in Score (0.00 to 1.00).
     3. Sustainability Score (0-100).
     4. Executive Summary (Max 3 sentences. blunt. identify the specific fatal flaw or key strength).
     5. Key Wins (3 bullet points).
@@ -95,25 +95,25 @@ export const runSimulationStage2 = async (input: ProjectInput, stage1: Partial<S
        - **Regulatory**: Is the sector (${input.sector}) heavily regulated?
        - **Operational**: Logistics in ${input.location}.
     
-    2. **Stakeholder Map**:
+    2. **Stakeholder Map (Power-Interest Grid)**:
        - Identify 5 SPECIFIC groups relevant to ${input.location} (e.g., "Village Elders", "Ministry of Health", "Local Gangs", "Youth Association").
-       - Do NOT use generic names like "Stakeholder 1".
-       - Logic: If Cultural Metric is low, local community groups MUST have negative sentiment.
+       - Assign **Power** (1-10) and **Interest** (1-10).
+       - Assign **Alignment** (Support, Neutral, Oppose).
     
     3. **Sentiment Forecast (Timeline)**:
        - Generate 6 key milestones over the ${input.duration}.
+       - **Score Scale**: 0.00 to 1.00.
        - **Hype Cycle Logic**: 
-         - Start: High (Excitement/Promises).
-         - Middle: Dip (Implementation friction, delays, bugs).
-         - End: Recovery (Adoption) OR Failure (if Overall Score < 50).
-       - The trend must match the Overall Score.
+         - Start: High (0.8+ Excitement).
+         - Middle: Dip (0.4-0.5 Implementation friction).
+         - End: Recovery (0.7+) OR Failure (<0.3) depending on Overall Score.
        
     4. **Risk Matrix**:
        - Identify 5 specific risks derived from the inputs (e.g. "Hardware theft" for high-tech in poor areas).
 
     Output:
-    1. Timeline (6 points).
-    2. Stakeholder Map (5 groups).
+    1. Timeline (6 points, sentiment 0.00-1.00).
+    2. Stakeholder Map (5 groups, Power/Interest 1-10).
     3. Metrics (5 categories).
     4. Risk Matrix (5 risks).
     5. Critical Flaws (3 short strings).
@@ -133,7 +133,12 @@ export const runSimulationStage2 = async (input: ProjectInput, stage1: Partial<S
         type: Type.ARRAY,
         items: {
           type: Type.OBJECT,
-          properties: { group: { type: Type.STRING }, sentiment: { type: Type.NUMBER }, influence: { type: Type.STRING } },
+          properties: { 
+            group: { type: Type.STRING }, 
+            power: { type: Type.NUMBER }, 
+            interest: { type: Type.NUMBER },
+            alignment: { type: Type.STRING, enum: ['Support', 'Neutral', 'Oppose'] } 
+          },
         },
       },
       metrics: {
