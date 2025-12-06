@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { ProjectForm } from './components/ProjectForm';
 import { SimulationDashboard } from './components/SimulationDashboard';
@@ -21,6 +20,16 @@ const DEFAULT_PROJECT: ProjectInput = {
   strategyHistory: []
 };
 
+// Auditor-style loading phrases mapped to progress percentage
+const LOADING_PHRASES = [
+  { threshold: 0, text: "Initializing critical audit protocols..." },
+  { threshold: 15, text: "Parsing project constraints & location context..." },
+  { threshold: 35, text: "Stress-testing budget against local economic factors..." },
+  { threshold: 55, text: "Simulating stakeholder resistance & cultural friction..." },
+  { threshold: 75, text: "Identifying fatal flaws and logic gaps..." },
+  { threshold: 90, text: "Synthesizing Executive Summary..." }
+];
+
 const App: React.FC = () => {
   const [input, setInput] = useState<ProjectInput>(DEFAULT_PROJECT);
   const [result, setResult] = useState<SimulationResult | null>(null);
@@ -39,8 +48,8 @@ const App: React.FC = () => {
       interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 98) return 98;
-          // Fast progress for Stage 1 since it's the blocking UI part
-          const jump = Math.max(1, (100 - prev) * 0.1); 
+          // Non-linear progress: Fast at start, slower at "thinking" spots
+          const jump = prev < 50 ? 1.5 : 0.8; 
           return prev + jump;
         });
       }, 100);
@@ -109,11 +118,8 @@ const App: React.FC = () => {
     }
   };
 
-  const getLoadingText = (p: number) => {
-    if (p < 30) return "Auditing project parameters...";
-    if (p < 60) return "Calculating financial & cultural risks...";
-    return "Generating Executive Summary...";
-  };
+  // Determine current text based on progress thresholds
+  const currentLoadingPhase = LOADING_PHRASES.slice().reverse().find(p => progress >= p.threshold) || LOADING_PHRASES[0];
 
   return (
     <div className="min-h-screen text-slate-800 font-sans flex flex-col relative">
@@ -197,14 +203,30 @@ const App: React.FC = () => {
             {status === SimulationStatus.LOADING && (
               <div className="glass-panel rounded-3xl border border-white p-12 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden bg-white/95">
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[80px] animate-pulse"></div>
-                 <div className="relative z-10 w-full max-w-lg text-center">
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Generating Initial Assessment...</h3>
-                    <p className="text-slate-500 mb-8 h-6">{getLoadingText(progress)}</p>
-                    <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+                 <div className="relative z-10 w-full max-w-lg text-center flex flex-col items-center">
+                    <h3 className="text-2xl font-bold text-slate-800 mb-4 animate-pulse">Running Simulation...</h3>
+                    
+                    {/* Animated Context Text */}
+                    <div className="h-8 mb-8 flex items-center justify-center w-full">
+                       <p 
+                         key={currentLoadingPhase.text} 
+                         className="text-indigo-600 font-medium animate-fade-in text-base"
+                       >
+                         {currentLoadingPhase.text}
+                       </p>
+                    </div>
+
+                    <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden w-full max-w-md shadow-inner">
                        <div 
                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 w-full animate-[shimmer_2s_infinite]"
                          style={{ width: `${progress}%`, transition: 'width 0.3s ease-out' }}
                        ></div>
+                    </div>
+                    
+                    <div className="mt-4 flex justify-between w-full max-w-md text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                       <span>Initiation</span>
+                       <span>Analysis</span>
+                       <span>Strategy</span>
                     </div>
                  </div>
               </div>

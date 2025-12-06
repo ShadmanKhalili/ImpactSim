@@ -315,71 +315,79 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                 </div>
               </div>
 
-              <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Risk Threat Grid (Card View) - Replaces Bar/Scatter Chart */}
-                  <div className="glass-panel p-8 rounded-3xl shadow-sm border border-white h-[450px] flex flex-col bg-slate-50">
-                    <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm uppercase tracking-wide">
-                       <span className="w-2 h-2 rounded-full bg-rose-500"></span> Risk Threat Grid
-                    </h3>
-                    <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {sortedRisks.map((risk, idx) => {
-                             const isCritical = risk.criticality > 60;
-                             const isHigh = risk.criticality > 30;
-                             const borderColor = isCritical ? 'border-rose-200' : isHigh ? 'border-orange-200' : 'border-amber-200';
-                             const bgColor = isCritical ? 'bg-rose-50' : isHigh ? 'bg-orange-50' : 'bg-amber-50';
-                             const textColor = isCritical ? 'text-rose-700' : isHigh ? 'text-orange-700' : 'text-amber-700';
-                             const badgeBg = isCritical ? 'bg-rose-500' : isHigh ? 'bg-orange-500' : 'bg-amber-500';
+              {/* UNIFIED RISK COMMAND CENTER */}
+              <div className="xl:col-span-2 glass-panel p-8 rounded-3xl shadow-sm border border-white h-[450px] flex flex-col bg-slate-50 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-orange-400"></div>
+                <div className="flex items-center gap-3 mb-6">
+                   <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wide">
+                       <span className="p-1.5 bg-rose-100 rounded-lg text-rose-600"><Icons.Alert /></span>
+                       Risk Assessment Command Center
+                   </h3>
+                   <span className="bg-white border border-slate-200 px-2 py-0.5 rounded text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                     {result.risks?.length || 0} Critical Flags
+                   </span>
+                </div>
 
-                             return (
-                               <div key={idx} className={`p-3 rounded-xl border ${borderColor} ${bgColor} shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow`}>
-                                  <div className="flex justify-between items-start mb-2">
-                                     <h4 className={`text-xs font-bold ${textColor} leading-tight pr-2`}>{risk.risk}</h4>
-                                     <span className={`text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full ${badgeBg}`}>
-                                       {risk.criticality}
-                                     </span>
-                                  </div>
-                                  <div className="space-y-1.5">
-                                     {/* Likelihood Bar */}
-                                     <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-semibold text-slate-500 w-8">Prob.</span>
-                                        <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
-                                           <div className="h-full bg-slate-400 rounded-full" style={{ width: `${risk.likelihood * 10}%` }}></div>
-                                        </div>
-                                     </div>
-                                     {/* Severity Bar */}
-                                     <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-semibold text-slate-500 w-8">Impact</span>
-                                        <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
-                                           <div className={`h-full rounded-full ${badgeBg}`} style={{ width: `${risk.severity * 10}%` }}></div>
-                                        </div>
-                                     </div>
-                                  </div>
-                               </div>
-                             );
-                          })}
+                <div className="flex-grow overflow-y-auto custom-scrollbar pr-2 space-y-6">
+                  {/* High Level Critical Flaws */}
+                  {result.risks && result.risks.length > 0 && (
+                    <div className="space-y-2">
+                       <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Strategic Critical Flaws</h4>
+                       <div className="grid grid-cols-1 gap-2">
+                         {result.risks.map((risk, idx) => (
+                           <div key={idx} className="flex items-start gap-3 p-3 bg-white border-l-4 border-l-rose-500 border-y border-r border-slate-100 rounded-r-lg shadow-sm">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                              <p className="text-sm text-slate-700 font-medium leading-snug">{risk}</p>
+                           </div>
+                         ))}
                        </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="glass-panel p-8 rounded-3xl shadow-sm border border-white h-[450px] flex flex-col bg-gradient-to-br from-rose-50 to-white">
-                     <h3 className="font-bold text-rose-900 mb-6 flex items-center gap-2 text-sm uppercase tracking-wide">
-                       <span className="p-1.5 bg-rose-100 rounded-lg"><Icons.Alert /></span>
-                       Critical Flaws
-                     </h3>
-                     <div className="flex-grow overflow-y-auto custom-scrollbar pr-2 space-y-3">
-                       {result.risks?.map((risk, idx) => (
-                         <div key={idx} className="p-4 bg-white border border-rose-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow group">
-                            <div className="flex gap-3">
-                              <span className="text-rose-600 mt-0.5 group-hover:scale-110 transition-transform">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                              </span>
-                              <p className="text-sm text-slate-800 font-medium leading-relaxed">{risk}</p>
-                            </div>
-                         </div>
-                       ))}
-                     </div>
+                  <div className="w-full h-px bg-slate-200/60 my-2"></div>
+
+                  {/* Granular Risk Grid */}
+                  <div className="space-y-2">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Operational Threat Matrix</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {sortedRisks.map((risk, idx) => {
+                           const isCritical = risk.criticality > 60;
+                           const isHigh = risk.criticality > 30;
+                           const borderColor = isCritical ? 'border-rose-200' : isHigh ? 'border-orange-200' : 'border-amber-200';
+                           const bgColor = isCritical ? 'bg-rose-50' : isHigh ? 'bg-orange-50' : 'bg-amber-50';
+                           const textColor = isCritical ? 'text-rose-700' : isHigh ? 'text-orange-700' : 'text-amber-700';
+                           const badgeBg = isCritical ? 'bg-rose-500' : isHigh ? 'bg-orange-500' : 'bg-amber-500';
+
+                           return (
+                             <div key={idx} className={`p-3 rounded-xl border ${borderColor} ${bgColor} shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow`}>
+                                <div className="flex justify-between items-start mb-2">
+                                   <h4 className={`text-xs font-bold ${textColor} leading-tight pr-2`}>{risk.risk}</h4>
+                                   <span className={`text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full ${badgeBg}`}>
+                                     {risk.criticality}
+                                   </span>
+                                </div>
+                                <div className="space-y-1.5">
+                                   {/* Likelihood Bar */}
+                                   <div className="flex items-center gap-2">
+                                      <span className="text-[9px] font-semibold text-slate-500 w-8">Prob.</span>
+                                      <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
+                                         <div className="h-full bg-slate-400 rounded-full" style={{ width: `${risk.likelihood * 10}%` }}></div>
+                                      </div>
+                                   </div>
+                                   {/* Severity Bar */}
+                                   <div className="flex items-center gap-2">
+                                      <span className="text-[9px] font-semibold text-slate-500 w-8">Impact</span>
+                                      <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
+                                         <div className={`h-full rounded-full ${badgeBg}`} style={{ width: `${risk.severity * 10}%` }}></div>
+                                      </div>
+                                   </div>
+                                </div>
+                             </div>
+                           );
+                        })}
+                    </div>
                   </div>
+                </div>
               </div>
             </div>
           </>
