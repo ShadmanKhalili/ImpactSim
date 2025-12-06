@@ -5,22 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ImpactSim | NGO Project Feasibility Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            },
+            colors: {
+              primary: {
+                50: '#f5f3ff',
+                100: '#ede9fe',
+                500: '#8b5cf6',
+                600: '#7c3aed',
+                700: '#6d28d9',
+                900: '#4c1d95',
+              }
+            }
+          }
+        }
+      }
+    </script>
     <style>
       body {
-        font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: #0f172a;
+        overflow-x: hidden;
       }
-      /* Custom scrollbar for simulator logs */
+      
+      /* Mesh Gradient Background */
+      .mesh-bg {
+        background-color: #0f172a;
+        background-image: 
+          radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+          radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+          radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+        min-height: 100vh;
+      }
+
+      /* Glassmorphism */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      
+      .glass-header {
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+
+      /* Custom Scrollbar */
       .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
+        height: 6px;
       }
       .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: rgba(0,0,0,0.05);
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
         background: #cbd5e1;
-        border-radius: 4px;
+        border-radius: 10px;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
@@ -28,28 +75,27 @@
 
       /* Animations */
       @keyframes fadeInUp {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
       }
-      
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
       }
+      @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+        100% { transform: translateY(0px); }
+      }
+      @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.2); }
+        50% { box-shadow: 0 0 25px rgba(124, 58, 237, 0.6); }
+      }
 
-      .animate-fade-in-up {
-        animation: fadeInUp 0.6s ease-out forwards;
-      }
-      
-      .animate-fade-in {
-        animation: fadeIn 0.8s ease-out forwards;
-      }
+      .animate-fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+      .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      .animate-pulse-glow { animation: pulse-glow 3s infinite; }
 
       .delay-100 { animation-delay: 100ms; }
       .delay-200 { animation-delay: 200ms; }
@@ -62,18 +108,18 @@
   <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "react/": "https://aistudiocdn.com/react@^19.2.1/",
     "react": "https://aistudiocdn.com/react@^19.2.1",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
     "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
     "vite": "https://aistudiocdn.com/vite@^7.2.6"
   }
 }
 </script>
 </head>
-  <body>
+  <body class="mesh-bg text-slate-800 antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

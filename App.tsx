@@ -15,8 +15,9 @@ const DEFAULT_PROJECT: ProjectInput = {
   localPartner: "Local Women's Coop",
   technologyLevel: "Medium Tech",
   fundingSource: "International Grant",
-  initialRiskLevel: 5,
-  description: "A centralized solar-powered kitchen facility in the village center. The goal is to reduce household biomass fuel consumption. Families will bring their raw food to the center to cook on clean stoves for a small fee."
+  teamExperience: "Experienced (3-5 years)",
+  description: "A centralized solar-powered kitchen facility in the village center. The goal is to reduce household biomass fuel consumption. Families will bring their raw food to the center to cook on clean stoves for a small fee.",
+  strategyHistory: []
 };
 
 const App: React.FC = () => {
@@ -36,26 +37,24 @@ const App: React.FC = () => {
     setHasKey(status.hasKey);
   }, []);
 
-  // Effect to handle progress bar animation during loading
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (status === SimulationStatus.LOADING) {
+      setProgress(0);
       interval = setInterval(() => {
         setProgress((prev) => {
-          // Fast at first, then slows down as it approaches 95%
-          if (prev >= 95) return 95;
+          if (prev >= 98) return 98;
           const remaining = 100 - prev;
-          const jump = Math.max(0.5, remaining * 0.05 * Math.random() * 5); 
+          const jump = Math.max(0.2, remaining * 0.08 * Math.random()); 
           return prev + jump;
         });
-      }, 400);
+      }, 200);
     }
     return () => clearInterval(interval);
   }, [status]);
 
   const handleSimulate = useCallback(async () => {
     setStatus(SimulationStatus.LOADING);
-    setProgress(0);
     setError(null);
     try {
       const data = await runSimulation(input);
@@ -64,7 +63,6 @@ const App: React.FC = () => {
     } catch (err: any) {
       console.error(err);
       const msg = err.message || "";
-      // Check for common API key issues
       if (msg.includes("Missing API Key") || msg.includes("API Key")) {
         setError("API Key Error: " + msg);
       } else {
@@ -75,218 +73,200 @@ const App: React.FC = () => {
   }, [input]);
 
   const handleApplyPivot = (pivot: PivotSuggestion) => {
-    setInput(prev => ({
-      ...prev,
-      description: `${prev.description}\n\n[MODIFICATION]: ${pivot.modification}`,
-    }));
+    setInput(prev => {
+      // Create a history entry
+      const newHistoryEntry = `[${pivot.title}] ${pivot.modification}`;
+      const updatedHistory = prev.strategyHistory ? [...prev.strategyHistory, newHistoryEntry] : [newHistoryEntry];
+      
+      const newChanges = pivot.changes || {};
+
+      return {
+        ...prev,
+        ...newChanges,
+        strategyHistory: updatedHistory,
+        // If the pivot suggests a description change, use it, otherwise keep existing
+        description: newChanges.description || prev.description 
+      };
+    });
     
-    // Smooth scroll to top to show form changed
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleFeedbackSubmit = () => {
     if (feedbackText.trim()) {
-      console.log("User Feedback Submitted:", feedbackText);
-      // Here you would typically send this to a backend service
-      alert("Thank you for your feedback!");
-      setFeedbackText("");
+      console.log("User Feedback:", feedbackText);
       setIsFeedbackOpen(false);
+      setFeedbackText("");
     }
   };
 
   const getLoadingText = (p: number) => {
-    if (p < 25) return "Initializing local context parameters...";
-    if (p < 50) return "Analyzing cultural norms and logistical constraints...";
-    if (p < 75) return "Calculating budget breakdown and financial risks...";
-    return "Finalizing impact projections and stakeholder map...";
+    if (p < 20) return "Connecting to Impact Engine (Gemini 3.0)...";
+    if (p < 40) return "Analysing geopolitical context...";
+    if (p < 60) return "Simulating stakeholder reactions...";
+    if (p < 80) return "Building financial risk models...";
+    return "Generating implementation timeline...";
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-inter flex flex-col">
-      {/* Header */}
-      <header className="bg-slate-900 text-white py-6 shadow-md">
-        <div className="container mx-auto px-4 flex items-center justify-between">
+    <div className="min-h-screen text-slate-800 font-sans flex flex-col relative">
+      <div className="fixed inset-0 pointer-events-none z-0">
+         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[100px] animate-float"></div>
+         <div className="absolute bottom-[10%] right-[-5%] w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] animate-float delay-500"></div>
+      </div>
+
+      <header className="glass-header sticky top-0 z-50 border-b border-white/10">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-             <div className="bg-blue-500 p-2 rounded-lg shadow-lg shadow-blue-500/30">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.54 15H17a2 2 0 0 0-2 2v4.54"/><path d="M7 3.34V5a3 3 0 0 0 3 3v0a2 2 0 0 1 2 2v0a9 9 0 0 1-5.12 8.43"/><path d="M14 2.93V5a3 3 0 0 0 3 3v0a2 2 0 0 1 2 2v0a9 9 0 0 1-5.12 8.43"/></svg>
+             <div className="relative group">
+                <div className="absolute inset-0 bg-indigo-500 blur opacity-40 group-hover:opacity-75 transition-opacity duration-500"></div>
+                <div className="relative bg-gradient-to-br from-indigo-600 to-violet-600 p-2 rounded-xl text-white shadow-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/></svg>
+                </div>
              </div>
              <div>
-               <h1 className="text-2xl font-bold tracking-tight">ImpactSim</h1>
-               <p className="text-slate-400 text-xs uppercase tracking-wider font-medium">NGO Project Feasibility Engine</p>
+               <h1 className="text-2xl font-extrabold text-white tracking-tight">ImpactSim <span className="text-indigo-400">AI</span></h1>
+               <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">Predictive NGO Project Engine</p>
              </div>
           </div>
-          <div className="hidden sm:block">
-            <span className="bg-slate-800 text-slate-300 text-xs py-1 px-3 rounded-full border border-slate-700">Powered by Gemini 2.5</span>
+          
+          <div className="hidden md:flex items-center gap-4">
+            <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
+               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+               System Operational
+            </span>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 mt-8 flex-grow pb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="container mx-auto px-6 mt-8 flex-grow pb-12 relative z-10">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
-          {/* Left Column: Input */}
-          <div className="lg:col-span-4 xl:col-span-3">
-            <div className="sticky top-8 space-y-4">
+          <div className="xl:col-span-3 lg:col-span-4">
+            <div className="sticky top-24 animate-fade-in-up">
                <ProjectForm 
                  input={input} 
                  setInput={setInput} 
                  onSimulate={handleSimulate} 
                  isLoading={status === SimulationStatus.LOADING}
                />
-               <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-xs text-blue-800">
-                  <p className="font-bold mb-1">Tip:</p>
-                  <p>Local Partners are critical in high-risk zones. Projects without them often face community pushback.</p>
+               <div className="mt-6 text-center text-xs text-slate-500/60 font-medium">
+                  Powered by Google Gemini 3.0 Pro
                </div>
             </div>
           </div>
 
-          {/* Right Column: Results */}
-          <div className="lg:col-span-8 xl:col-span-9">
+          <div className="xl:col-span-9 lg:col-span-8">
             {status === SimulationStatus.IDLE && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center flex flex-col items-center justify-center min-h-[500px]">
-                <div className="bg-blue-50 p-6 rounded-full mb-6 animate-pulse">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><path d="M2 12h10"/><path d="M9 4v16"/><path d="m3 9 3 3-3 3"/><path d="M14 8V6c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2v-2"/><path d="m17 10 3 2-3 2"/></svg>
+              <div className="glass-panel rounded-3xl border border-white/50 p-16 text-center flex flex-col items-center justify-center min-h-[600px] animate-fade-in delay-100">
+                <div className="relative mb-8 group">
+                   <div className="absolute inset-0 bg-indigo-500/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-700"></div>
+                   <div className="relative bg-white p-6 rounded-2xl shadow-xl shadow-indigo-500/20 animate-float">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><path d="M2 12h10"/><path d="M9 4v16"/><path d="m3 9 3 3-3 3"/><path d="M14 8V6c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2v-2"/><path d="m17 10 3 2-3 2"/></svg>
+                   </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">Ready to Simulate</h3>
-                <p className="text-gray-500 max-w-lg mx-auto mb-8 leading-relaxed">
-                  Enter your project details on the left or use the <strong>Random Scenario</strong> button to test different ideas. ImpactSim uses advanced AI to predict outcomes based on local culture, economics, and logistics.
+                <h2 className="text-4xl font-extrabold text-slate-800 mb-4 tracking-tight">Design. Simulate. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Impact.</span></h2>
+                <p className="text-slate-500 max-w-lg mx-auto mb-10 text-lg leading-relaxed">
+                  Test your international development projects against real-world constraints using AI. Get risk analysis, stakeholder maps, and budgets in seconds.
                 </p>
-                <div className="flex gap-4 text-sm text-gray-400">
-                   <span className="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Global Context</span>
-                   <span className="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Economic Analysis</span>
-                   <span className="flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Cultural Fit</span>
+                <div className="flex gap-4">
+                   <div className="h-1 w-16 rounded-full bg-slate-200"></div>
+                   <div className="h-1 w-16 rounded-full bg-slate-200"></div>
+                   <div className="h-1 w-16 rounded-full bg-slate-200"></div>
                 </div>
               </div>
             )}
 
             {status === SimulationStatus.ERROR && (
-              <div className="bg-red-50 text-red-700 p-8 rounded-xl border border-red-200 text-center flex flex-col items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-50"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p className="font-bold text-lg mb-2">Simulation Failed</p>
-                <p className="max-w-md whitespace-pre-wrap">{error}</p>
-                
-                {!hasKey && (
-                   <div className="mt-6 p-4 bg-white border border-red-100 rounded-lg text-sm text-center">
-                     <p className="font-bold text-gray-800">API Key Missing</p>
-                     <p className="text-gray-600">Please configure <code>VITE_ImpactSim</code> in your Deployment Settings.</p>
-                   </div>
-                )}
+              <div className="glass-panel bg-rose-50/50 p-8 rounded-2xl border border-rose-200 text-center animate-fade-in-up">
+                <div className="inline-flex p-3 bg-rose-100 text-rose-600 rounded-full mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">Simulation Failed</h3>
+                <p className="text-slate-600 max-w-md mx-auto mb-6">{error}</p>
+                <button onClick={() => setStatus(SimulationStatus.IDLE)} className="px-6 py-2 bg-white border border-rose-200 text-rose-600 font-bold rounded-lg hover:bg-rose-50 transition-colors">Try Again</button>
               </div>
             )}
 
             {status === SimulationStatus.LOADING && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 min-h-[500px] flex flex-col items-center justify-center">
-                 <div className="relative mb-8">
-                   <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-75"></div>
-                   <div className="relative bg-white p-4 rounded-full shadow-sm border border-blue-100">
-                     <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                     </svg>
-                   </div>
-                 </div>
-                 
-                 <h3 className="text-xl font-bold text-gray-800 mb-6">Running Simulation Model...</h3>
-                 
-                 <div className="w-full max-w-md space-y-2">
-                   <div className="flex justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                     <span>Progress</span>
-                     <span>{Math.round(progress)}%</span>
-                   </div>
-                   <div className="h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
-                     <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300 ease-out"
-                        style={{ width: `${progress}%` }}
-                     ></div>
-                   </div>
-                 </div>
-
-                 <div className="mt-8 h-8 text-center w-full">
-                    <p className="text-sm font-medium text-gray-600 animate-fade-in transition-all duration-300">
-                       {getLoadingText(progress)}
-                    </p>
+              <div className="glass-panel rounded-3xl border border-white/50 p-12 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden">
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[80px] animate-pulse"></div>
+                 <div className="relative z-10 w-full max-w-lg text-center">
+                    <div className="mb-8 relative inline-block">
+                       <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-40 animate-pulse"></div>
+                       <div className="relative bg-white p-5 rounded-2xl shadow-lg">
+                          <svg className="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                       </div>
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Generating Simulation Model</h3>
+                    <p className="text-slate-500 mb-8 h-6">{getLoadingText(progress)}</p>
+                    <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+                       <div 
+                         className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 w-full animate-[shimmer_2s_infinite]"
+                         style={{ width: `${progress}%`, transition: 'width 0.3s ease-out' }}
+                       ></div>
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs font-bold text-slate-400">
+                       <span>0%</span>
+                       <span>{Math.round(progress)}%</span>
+                       <span>100%</span>
+                    </div>
                  </div>
               </div>
             )}
 
             {status === SimulationStatus.SUCCESS && result && (
-              <SimulationDashboard 
-                result={result} 
-                onApplyPivot={handleApplyPivot}
-              />
+              <div className="animate-fade-in">
+                <SimulationDashboard result={result} onApplyPivot={handleApplyPivot} />
+              </div>
             )}
           </div>
         </div>
       </main>
 
-      {/* System Status Footer */}
-      <footer className="border-t border-gray-200 bg-white py-4 mt-auto">
-         <div className="container mx-auto px-4 flex justify-between items-center text-xs text-gray-500">
-           <div>
-             ImpactSim v1.0.5 &bull; NGO Feasibility Simulator
+      <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur-md py-6 mt-auto">
+         <div className="container mx-auto px-6 flex justify-between items-center text-xs text-slate-400">
+           <div className="font-medium">
+             &copy; 2025 ImpactSim. Created by Shadman Khalili.
            </div>
-           <div className="flex items-center gap-4">
+           <div className="flex items-center gap-6">
               <button 
                 onClick={() => setIsFeedbackOpen(true)}
-                className="hover:text-blue-600 transition-colors font-medium flex items-center gap-1"
+                className="hover:text-white transition-colors flex items-center gap-2 group"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Feedback
+                <svg className="group-hover:-translate-y-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Send Feedback
               </button>
-              <div className="flex items-center gap-2">
-                 <span>System Status:</span>
-                 {hasKey ? (
-                   <span className="flex items-center gap-1 text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
-                     <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                     Operational
-                   </span>
-                 ) : (
-                   <span className="flex items-center gap-1 text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded-full">
-                     <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                     Configuration Required
-                   </span>
-                 )}
-              </div>
            </div>
          </div>
       </footer>
 
-      {/* Feedback Modal */}
       {isFeedbackOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="font-bold text-gray-800">Provide Feedback</h3>
-              <button 
-                onClick={() => setIsFeedbackOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-            <div className="p-4 space-y-4">
-              <p className="text-sm text-gray-600">Help us improve ImpactSim. Share your thoughts, bugs, or feature requests.</p>
-              <textarea
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsFeedbackOpen(false)}></div>
+          <div className="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 animate-fade-in-up overflow-hidden border border-white/40">
+            <div className="p-6">
+               <div className="flex justify-between items-center mb-6">
+                 <h3 className="text-xl font-bold text-slate-800">Your Feedback</h3>
+                 <button onClick={() => setIsFeedbackOpen(false)} className="text-slate-400 hover:text-slate-600">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                 </button>
+               </div>
+               <textarea
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Type your feedback here..."
-                className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-sm"
-              />
-            </div>
-            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
-              <button
-                onClick={() => setIsFeedbackOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
+                placeholder="Share your thoughts..."
+                className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none text-sm mb-4"
+               />
+               <button
                 onClick={handleFeedbackSubmit}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
-              >
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/30 active:scale-[0.98]"
+               >
                 Submit Feedback
-              </button>
+               </button>
             </div>
           </div>
         </div>

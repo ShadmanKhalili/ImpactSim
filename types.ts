@@ -10,7 +10,8 @@ export interface ProjectInput {
   localPartner: string;
   technologyLevel: string;
   fundingSource: string;
-  initialRiskLevel: number; // 1-10
+  teamExperience: string;
+  strategyHistory?: string[]; // New: Tracks applied pivots separately
 }
 
 export interface Metric {
@@ -23,6 +24,7 @@ export interface PivotSuggestion {
   title: string;
   modification: string;
   rationale: string;
+  changes?: Partial<ProjectInput>;
 }
 
 export interface TimelineEvent {
@@ -56,6 +58,13 @@ export interface ImpactProjection {
   environmental: number;
 }
 
+export interface ScheduleItem {
+  task: string;
+  startMonth: number;
+  durationMonths: number;
+  type: 'planning' | 'execution' | 'milestone';
+}
+
 export interface SimulationResult {
   overallScore: number;
   communitySentiment: number; // 0-100
@@ -66,6 +75,7 @@ export interface SimulationResult {
   stakeholderAnalysis: Stakeholder[];
   riskAnalysis: RiskAnalysis[];
   longTermImpact: ImpactProjection[];
+  schedule: ScheduleItem[];
   narrative: string;
   risks: string[];
   successFactors: string[];
