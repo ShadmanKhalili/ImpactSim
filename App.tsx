@@ -89,7 +89,7 @@ const App: React.FC = () => {
       };
     });
     
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Removed window.scrollTo to keep user context
   };
 
   const handleFeedbackSubmit = () => {
