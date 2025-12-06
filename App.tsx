@@ -110,8 +110,8 @@ const App: React.FC = () => {
   };
 
   const getLoadingText = (p: number) => {
-    if (p < 30) return "Connecting to Impact Engine (Gemini 2.5)...";
-    if (p < 60) return "Analyzing feasibility parameters...";
+    if (p < 30) return "Auditing project parameters...";
+    if (p < 60) return "Calculating financial & cultural risks...";
     return "Generating Executive Summary...";
   };
 
