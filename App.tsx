@@ -27,6 +27,10 @@ const App: React.FC = () => {
   const [hasKey, setHasKey] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);
 
+  // Feedback State
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+
   useEffect(() => {
     const status = checkApiKeyStatus();
     setHasKey(status.hasKey);
@@ -78,6 +82,16 @@ const App: React.FC = () => {
     
     // Smooth scroll to top to show form changed
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFeedbackSubmit = () => {
+    if (feedbackText.trim()) {
+      console.log("User Feedback Submitted:", feedbackText);
+      // Here you would typically send this to a backend service
+      alert("Thank you for your feedback!");
+      setFeedbackText("");
+      setIsFeedbackOpen(false);
+    }
   };
 
   const getLoadingText = (p: number) => {
@@ -213,6 +227,13 @@ const App: React.FC = () => {
              ImpactSim v1.0.5 &bull; NGO Feasibility Simulator
            </div>
            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsFeedbackOpen(true)}
+                className="hover:text-blue-600 transition-colors font-medium flex items-center gap-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Feedback
+              </button>
               <div className="flex items-center gap-2">
                  <span>System Status:</span>
                  {hasKey ? (
@@ -230,6 +251,46 @@ const App: React.FC = () => {
            </div>
          </div>
       </footer>
+
+      {/* Feedback Modal */}
+      {isFeedbackOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="font-bold text-gray-800">Provide Feedback</h3>
+              <button 
+                onClick={() => setIsFeedbackOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <div className="p-4 space-y-4">
+              <p className="text-sm text-gray-600">Help us improve ImpactSim. Share your thoughts, bugs, or feature requests.</p>
+              <textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Type your feedback here..."
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-sm"
+              />
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                onClick={() => setIsFeedbackOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFeedbackSubmit}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm"
+              >
+                Submit Feedback
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

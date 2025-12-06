@@ -1,71 +1,16 @@
-
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
-/**
- * Safely retrieves the API key from various environment locations.
- * Prioritizes standard process.env, then falls back to Vite's import.meta.env.
- */
-export const getSafeKey = (): string | undefined => {
-  // 1. Try process.env (Standard/Netlify)
-  if (typeof process !== 'undefined' && process.env) {
-     if (process.env.API_KEY) return process.env.API_KEY;
-     if (process.env.VITE_ImpactSim) return process.env.VITE_ImpactSim;
-     if (process.env.REACT_APP_ImpactSim) return process.env.REACT_APP_ImpactSim;
-  }
-  
-  // 2. Try import.meta.env (Vite)
-  try {
-     // @ts-ignore
-     if (typeof import.meta !== 'undefined' && import.meta.env) {
-         // @ts-ignore
-         return import.meta.env.VITE_ImpactSim;
-     }
-  } catch(e) {
-     // Ignore errors if import.meta is not supported
-  }
-
-  return undefined;
-};
-
 export const checkApiKeyStatus = () => {
-  const key = getSafeKey();
   return {
-    hasKey: !!key,
+    hasKey: !!process.env.API_KEY,
   };
 };
 
-/**
- * Cleans the raw text response from Gemini to ensure valid JSON parsing.
- * Uses Regex to extract the first JSON object found.
- */
-const cleanJsonResponse = (text: string): string => {
-  try {
-    // Attempt to find the first JSON object in the response
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      return match[0];
-    }
-  } catch (e) {
-    // Fallback to simple cleanup if regex fails
-  }
-  
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```json')) {
-    cleaned = cleaned.substring(7);
-  } else if (cleaned.startsWith('```')) {
-    cleaned = cleaned.substring(3);
-  }
-  if (cleaned.endsWith('```')) {
-    cleaned = cleaned.substring(0, cleaned.length - 3);
-  }
-  return cleaned.trim();
-};
-
 export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
-  const apiKey = getSafeKey();
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("Missing API Key. Please ensure VITE_ImpactSim is set in your environment variables.");
+    throw new Error("Missing API Key. Please ensure process.env.API_KEY is set.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -83,22 +28,6 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
     Desc: ${input.description}
 
     Task: Simulate lifecycle. Consider corruption, culture, logistics.
-    Output VALID JSON:
-    {
-      "overallScore": number (0-100),
-      "communitySentiment": number (0-100),
-      "sustainabilityScore": number (0-100),
-      "metrics": [{ "category": string, "score": number, "reasoning": string }],
-      "timeline": [{ "month": string, "title": string, "description": string, "sentimentScore": number }],
-      "budgetBreakdown": [{ "category": string, "percentage": number }],
-      "stakeholderAnalysis": [{ "group": string, "sentiment": number (-100 to 100), "influence": "High"|"Medium"|"Low" }],
-      "riskAnalysis": [{ "risk": string, "likelihood": number (1-10), "severity": number (1-10) }],
-      "longTermImpact": [{ "year": string, "social": number, "economic": number, "environmental": number }],
-      "narrative": string,
-      "risks": [string],
-      "successFactors": [string],
-      "pivots": [{ "title": string, "modification": string, "rationale": string }]
-    }
   `;
 
   try {
@@ -108,6 +37,107 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
       config: {
         temperature: 0.2, 
         responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            overallScore: { type: Type.NUMBER },
+            communitySentiment: { type: Type.NUMBER },
+            sustainabilityScore: { type: Type.NUMBER },
+            metrics: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  score: { type: Type.NUMBER },
+                  reasoning: { type: Type.STRING },
+                },
+                required: ["category", "score", "reasoning"],
+              },
+            },
+            timeline: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  month: { type: Type.STRING },
+                  title: { type: Type.STRING },
+                  description: { type: Type.STRING },
+                  sentimentScore: { type: Type.NUMBER },
+                },
+                required: ["month", "title", "description", "sentimentScore"],
+              },
+            },
+            budgetBreakdown: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  category: { type: Type.STRING },
+                  percentage: { type: Type.NUMBER },
+                },
+                required: ["category", "percentage"],
+              },
+            },
+            stakeholderAnalysis: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  group: { type: Type.STRING },
+                  sentiment: { type: Type.NUMBER },
+                  influence: { type: Type.STRING },
+                },
+                required: ["group", "sentiment", "influence"],
+              },
+            },
+            riskAnalysis: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  risk: { type: Type.STRING },
+                  likelihood: { type: Type.NUMBER },
+                  severity: { type: Type.NUMBER },
+                },
+                required: ["risk", "likelihood", "severity"],
+              },
+            },
+            longTermImpact: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  year: { type: Type.STRING },
+                  social: { type: Type.NUMBER },
+                  economic: { type: Type.NUMBER },
+                  environmental: { type: Type.NUMBER },
+                },
+                required: ["year", "social", "economic", "environmental"],
+              },
+            },
+            narrative: { type: Type.STRING },
+            risks: { type: Type.ARRAY, items: { type: Type.STRING } },
+            successFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+            pivots: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  title: { type: Type.STRING },
+                  modification: { type: Type.STRING },
+                  rationale: { type: Type.STRING },
+                },
+                required: ["title", "modification", "rationale"],
+              },
+            },
+          },
+          required: [
+            "overallScore", "communitySentiment", "sustainabilityScore", "metrics",
+            "timeline", "budgetBreakdown", "stakeholderAnalysis", "riskAnalysis",
+            "longTermImpact", "narrative", "risks", "successFactors", "pivots"
+          ],
+        },
       },
     });
 
@@ -116,8 +146,7 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
       throw new Error("No response received from AI model.");
     }
 
-    const cleanedText = cleanJsonResponse(text);
-    return JSON.parse(cleanedText) as SimulationResult;
+    return JSON.parse(text) as SimulationResult;
     
   } catch (error: any) {
      console.error("Simulation Error:", error);
