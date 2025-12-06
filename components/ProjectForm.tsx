@@ -142,6 +142,7 @@ const PRESETS: ProjectInput[] = [
 
 export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSimulate, isLoading }) => {
   const [hasSavedScenario, setHasSavedScenario] = useState(false);
+  const [manualPivot, setManualPivot] = useState("");
 
   useEffect(() => {
     try {
@@ -182,6 +183,16 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
     } catch (e) {
       // ignore
     }
+  };
+
+  const handleAddManualPivot = () => {
+    if (!manualPivot.trim()) return;
+    const newEntry = `[Manual Strategy] ${manualPivot}`;
+    setInput(prev => ({
+      ...prev,
+      strategyHistory: prev.strategyHistory ? [...prev.strategyHistory, newEntry] : [newEntry]
+    }));
+    setManualPivot("");
   };
 
   const InputGroup = ({ label, name, value, placeholder, icon }: any) => (
@@ -227,7 +238,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
 
       <div className="space-y-6">
         
-        {/* Row 1: Title & Sector */}
+        {/* Row 1: Title & Funding Source (Swapped) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
            <InputGroup 
             label="Project Name" 
@@ -236,12 +247,12 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             placeholder="e.g. Solar Community Kitchen"
             icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>}
           />
-          <InputGroup 
-            label="Sector" 
-            name="sector" 
-            value={input.sector} 
-            placeholder="Healthcare"
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
+           <InputGroup 
+              label="Funding Source" 
+              name="fundingSource" 
+              value={input.fundingSource} 
+              placeholder="Grants"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>}
           />
         </div>
 
@@ -263,7 +274,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           />
         </div>
 
-        {/* Row 3: Budget, Duration, Funding (3 cols on larger screens) */}
+        {/* Row 3: Budget, Duration, Sector (Swapped) (3 cols on larger screens) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
            <InputGroup 
              label="Budget" 
@@ -280,11 +291,11 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
              icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
            />
            <InputGroup 
-              label="Funding Source" 
-              name="fundingSource" 
-              value={input.fundingSource} 
-              placeholder="Grants"
-              icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>}
+            label="Sector" 
+            name="sector" 
+            value={input.sector} 
+            placeholder="Healthcare"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
           />
         </div>
 
@@ -351,13 +362,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         </div>
 
         {/* Strategy Evolution Section */}
-        {input.strategyHistory && input.strategyHistory.length > 0 && (
-          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-             <label className="block text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-               Strategy Evolution
-             </label>
-             <div className="space-y-2">
+        <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+           <label className="block text-xs font-bold text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+             Strategy Evolution
+           </label>
+           
+           {input.strategyHistory && input.strategyHistory.length > 0 ? (
+             <div className="space-y-2 mb-4">
                {input.strategyHistory.map((pivot, idx) => (
                  <div key={idx} className="text-xs text-slate-700 font-medium bg-white p-2 rounded-lg shadow-sm border border-indigo-100 flex items-start gap-2">
                    <span className="text-indigo-500 mt-0.5">•</span>
@@ -365,8 +377,29 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
                  </div>
                ))}
              </div>
-          </div>
-        )}
+           ) : (
+             <p className="text-xs text-slate-400 italic mb-3 ml-1">No strategies applied yet.</p>
+           )}
+
+           {/* Manual Strategy Input */}
+           <div className="flex gap-2">
+              <input 
+                type="text"
+                value={manualPivot}
+                onChange={(e) => setManualPivot(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddManualPivot()}
+                placeholder="Add manual strategy (e.g. 'Partner with local university')..."
+                className="flex-grow px-3 py-2 text-xs border border-indigo-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-700"
+              />
+              <button 
+                onClick={handleAddManualPivot}
+                className="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center"
+                title="Add Strategy"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+           </div>
+        </div>
 
         <div className="flex gap-3 pt-4">
            <button
