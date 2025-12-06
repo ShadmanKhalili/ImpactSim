@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar, ReferenceLine, Legend, ScatterChart, Scatter, ZAxis, LineChart, Line } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar, ReferenceLine, Legend, ScatterChart, Scatter, ZAxis, LineChart, Line, LabelList } from 'recharts';
 import { SimulationResult, PivotSuggestion } from '../types';
 
 interface SimulationDashboardProps {
@@ -27,6 +27,17 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-slate-900 p-4 border border-slate-700 shadow-2xl rounded-xl z-50 min-w-[150px]">
         {label && <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-2 font-bold">{label}</p>}
+        {/* Risk Tooltip Logic */}
+        {data.risk && (
+           <div className="mb-2">
+              <p className="font-bold text-white text-sm border-b border-slate-700 pb-2">{data.risk}</p>
+              <div className="flex justify-between mt-2 text-xs">
+                 <span className="text-slate-400">Criticality Score:</span>
+                 <span className="text-rose-400 font-bold">{data.criticality}</span>
+              </div>
+           </div>
+        )}
+        {/* Stakeholder Tooltip Logic */}
         {data.group && (
            <p className="font-bold text-white text-sm mb-2 border-b border-slate-700 pb-2">{data.group}</p>
         )}
@@ -117,6 +128,14 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
 
   const scoreColor = result.overallScore >= 80 ? 'text-emerald-600' : result.overallScore >= 50 ? 'text-amber-600' : 'text-rose-600';
   const scoreBg = result.overallScore >= 80 ? 'bg-emerald-500' : result.overallScore >= 50 ? 'bg-amber-500' : 'bg-rose-500';
+  
+  // Calculate Risk Ranking Data
+  const sortedRisks = React.useMemo(() => {
+    if (!result.riskAnalysis) return [];
+    return [...result.riskAnalysis]
+      .map(r => ({ ...r, criticality: r.likelihood * r.severity }))
+      .sort((a, b) => b.criticality - a.criticality);
+  }, [result.riskAnalysis]);
 
   return (
     <div className="space-y-8 pb-12">
@@ -159,8 +178,10 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
              <div className="flex justify-between items-start">
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-widest text-blue-600 mb-2">Community Buy-in</p>
-                  {/* Changed to 0.00 scale display */}
-                  <h2 className="text-5xl font-black text-slate-800 tracking-tight">{result.communitySentiment?.toFixed(2)}</h2>
+                  <div className="flex items-baseline gap-2">
+                     <h2 className="text-5xl font-black text-slate-800 tracking-tight">{result.communitySentiment?.toFixed(2)}</h2>
+                     <span className="text-lg font-bold text-slate-400">/ 1.0</span>
+                  </div>
                 </div>
                 <div className="p-3 bg-blue-50 text-blue-700 rounded-2xl"><Icons.Users /></div>
              </div>
@@ -236,7 +257,6 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="month" tick={{fontSize: 11, fill: '#64748b', fontWeight: 700}} axisLine={false} tickLine={false} dy={10} />
-                      {/* Domain 0 to 1 for new sentiment scale */}
                       <YAxis domain={[0, 1]} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '4 4' }} />
                       <Area type="monotone" dataKey="sentimentScore" stroke="#3b82f6" strokeWidth={4} fill="url(#colorSentiment)" animationDuration={1000} />
@@ -255,9 +275,9 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" dataKey="interest" name="Interest" domain={[0, 10]} label={{ value: 'Interest', position: 'bottom', offset: 0, fontSize: 10, fill: '#94a3b8' }} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} />
                       <YAxis type="number" dataKey="power" name="Power" domain={[0, 10]} label={{ value: 'Power', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#94a3b8' }} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} />
-                      <ZAxis range={[150, 400]} /> {/* Increase bubble size */}
+                      <ZAxis range={[150, 400]} />
                       <Tooltip cursor={{ strokeDasharray: '3 3' }} content={<CustomTooltip />} />
-                      {/* Quadrant Lines */}
+                      {/* Quadrants */}
                       <ReferenceLine x={5} stroke="#cbd5e1" strokeDasharray="3 3" />
                       <ReferenceLine y={5} stroke="#cbd5e1" strokeDasharray="3 3" />
                       <Scatter name="Stakeholders" data={result.stakeholderAnalysis} animationDuration={1000}>
@@ -296,25 +316,49 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
               </div>
 
               <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="glass-panel p-8 rounded-3xl shadow-sm border border-white h-[450px] flex flex-col bg-white">
+                  {/* Risk Threat Grid (Card View) - Replaces Bar/Scatter Chart */}
+                  <div className="glass-panel p-8 rounded-3xl shadow-sm border border-white h-[450px] flex flex-col bg-slate-50">
                     <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm uppercase tracking-wide">
-                       <span className="w-2 h-2 rounded-full bg-rose-500"></span> Risk Matrix
+                       <span className="w-2 h-2 rounded-full bg-rose-500"></span> Risk Threat Grid
                     </h3>
-                    <div className="flex-grow">
-                       <ResponsiveContainer width="100%" height="100%">
-                          <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis type="number" dataKey="likelihood" name="Likelihood" domain={[0, 10]} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} label={{ value: 'Likelihood', position: 'bottom', offset: 0, fontSize: 10, fill: '#94a3b8' }} />
-                            <YAxis type="number" dataKey="severity" name="Severity" domain={[0, 10]} tick={{fontSize: 11, fill: '#64748b', fontWeight: 600}} label={{ value: 'Severity', angle: -90, position: 'insideLeft', fontSize: 10, fill: '#94a3b8' }} />
-                            <ZAxis range={[100, 300]} />
-                            <Tooltip cursor={{ strokeDasharray: '3 3', stroke: '#94a3b8' }} content={<CustomTooltip />} />
-                            <Scatter name="Risks" data={result.riskAnalysis} fill="#ef4444" animationDuration={1000}>
-                               {result.riskAnalysis?.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.severity > 7 ? '#ef4444' : entry.severity > 4 ? '#f59e0b' : '#3b82f6'} fillOpacity={0.7} stroke="white" strokeWidth={2} />
-                               ))}
-                            </Scatter>
-                          </ScatterChart>
-                       </ResponsiveContainer>
+                    <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {sortedRisks.map((risk, idx) => {
+                             const isCritical = risk.criticality > 60;
+                             const isHigh = risk.criticality > 30;
+                             const borderColor = isCritical ? 'border-rose-200' : isHigh ? 'border-orange-200' : 'border-amber-200';
+                             const bgColor = isCritical ? 'bg-rose-50' : isHigh ? 'bg-orange-50' : 'bg-amber-50';
+                             const textColor = isCritical ? 'text-rose-700' : isHigh ? 'text-orange-700' : 'text-amber-700';
+                             const badgeBg = isCritical ? 'bg-rose-500' : isHigh ? 'bg-orange-500' : 'bg-amber-500';
+
+                             return (
+                               <div key={idx} className={`p-3 rounded-xl border ${borderColor} ${bgColor} shadow-sm flex flex-col justify-between group hover:shadow-md transition-shadow`}>
+                                  <div className="flex justify-between items-start mb-2">
+                                     <h4 className={`text-xs font-bold ${textColor} leading-tight pr-2`}>{risk.risk}</h4>
+                                     <span className={`text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full ${badgeBg}`}>
+                                       {risk.criticality}
+                                     </span>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                     {/* Likelihood Bar */}
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-semibold text-slate-500 w-8">Prob.</span>
+                                        <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
+                                           <div className="h-full bg-slate-400 rounded-full" style={{ width: `${risk.likelihood * 10}%` }}></div>
+                                        </div>
+                                     </div>
+                                     {/* Severity Bar */}
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-semibold text-slate-500 w-8">Impact</span>
+                                        <div className="flex-grow h-1.5 bg-white rounded-full overflow-hidden">
+                                           <div className={`h-full rounded-full ${badgeBg}`} style={{ width: `${risk.severity * 10}%` }}></div>
+                                        </div>
+                                     </div>
+                                  </div>
+                               </div>
+                             );
+                          })}
+                       </div>
                     </div>
                   </div>
 

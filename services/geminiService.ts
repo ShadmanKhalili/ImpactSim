@@ -96,7 +96,7 @@ export const runSimulationStage2 = async (input: ProjectInput, stage1: Partial<S
        - **Operational**: Logistics in ${input.location}.
     
     2. **Stakeholder Map (Power-Interest Grid)**:
-       - Identify 5 SPECIFIC groups relevant to ${input.location} (e.g., "Village Elders", "Ministry of Health", "Local Gangs", "Youth Association").
+       - Identify 8 SPECIFIC groups relevant to ${input.location} (e.g., "Village Elders", "Ministry of Health", "Local Gangs", "Youth Association").
        - Assign **Power** (1-10) and **Interest** (1-10).
        - Assign **Alignment** (Support, Neutral, Oppose).
     
@@ -108,14 +108,15 @@ export const runSimulationStage2 = async (input: ProjectInput, stage1: Partial<S
          - Middle: Dip (0.4-0.5 Implementation friction).
          - End: Recovery (0.7+) OR Failure (<0.3) depending on Overall Score.
        
-    4. **Risk Matrix**:
-       - Identify 5 specific risks derived from the inputs (e.g. "Hardware theft" for high-tech in poor areas).
+    4. **Risk Ranking**:
+       - Identify 8 specific risks derived from the inputs (e.g. "Hardware theft" for high-tech in poor areas).
+       - Likelihood (1-10) and Severity (1-10).
 
     Output:
     1. Timeline (6 points, sentiment 0.00-1.00).
-    2. Stakeholder Map (5 groups, Power/Interest 1-10).
+    2. Stakeholder Map (8 groups, Power/Interest 1-10).
     3. Metrics (5 categories).
-    4. Risk Matrix (5 risks).
+    4. Risk Matrix (8 risks).
     5. Critical Flaws (3 short strings).
   `;
 
