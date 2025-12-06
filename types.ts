@@ -66,20 +66,25 @@ export interface ScheduleItem {
 }
 
 export interface SimulationResult {
+  // Stage 1: Immediate Summary
   overallScore: number;
   communitySentiment: number; // 0-100
   sustainabilityScore: number; // 0-100
-  metrics: Metric[];
-  timeline: TimelineEvent[];
-  budgetBreakdown: BudgetItem[];
-  stakeholderAnalysis: Stakeholder[];
-  riskAnalysis: RiskAnalysis[];
-  longTermImpact: ImpactProjection[];
-  schedule: ScheduleItem[];
   narrative: string;
-  risks: string[];
   successFactors: string[];
-  pivots: PivotSuggestion[];
+
+  // Stage 2: Analytics (Optional while loading)
+  metrics?: Metric[];
+  timeline?: TimelineEvent[];
+  budgetBreakdown?: BudgetItem[];
+  stakeholderAnalysis?: Stakeholder[];
+  riskAnalysis?: RiskAnalysis[];
+  longTermImpact?: ImpactProjection[];
+  risks?: string[];
+
+  // Stage 3: Strategy (Optional while loading)
+  schedule?: ScheduleItem[];
+  pivots?: PivotSuggestion[];
 }
 
 export enum SimulationStatus {

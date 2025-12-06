@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ProjectInput, SimulationResult } from "../types";
 
 export const checkApiKeyStatus = () => {
@@ -8,219 +8,200 @@ export const checkApiKeyStatus = () => {
   };
 };
 
-export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
+// Helper to sanitize JSON
+const cleanJsonResponse = (text: string): string => {
+  return text.replace(/```json\n|\n```/g, "").replace(/```/g, "").trim();
+};
+
+const getModel = () => {
   const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing API Key. Please ensure process.env.API_KEY is set.");
-  }
+  if (!apiKey) throw new Error("Missing API Key");
+  return new GoogleGenAI({ apiKey }).models;
+};
 
-  const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-2.5-flash";
+const MODEL_NAME = "gemini-2.5-flash";
 
-  // Incorporate strategy history into the context
+// --- STAGE 1: High Level Summary & Scores ---
+export const runSimulationStage1 = async (input: ProjectInput): Promise<Partial<SimulationResult>> => {
+  const models = getModel();
+  
   const historyContext = input.strategyHistory && input.strategyHistory.length > 0
-    ? `Project Evolution / Applied Pivots:\n${input.strategyHistory.map(h => `- ${h}`).join('\n')}`
-    : "No pivots applied yet. This is the initial design.";
+    ? `Project Evolution:\n${input.strategyHistory.map(h => `- ${h}`).join('\n')}`
+    : "Initial design.";
 
   const prompt = `
-    Persona: You are a Hard-Nosed, Critical International Development Grant Auditor. 
-    Your job is to screen projects for MAJOR funding. You are skeptical, objective, and financially astute.
-    You DO NOT glaze over details. You DO NOT give high scores to "nice ideas" that lack logistical grounding.
-    You are allergic to buzzwords (AI, Blockchain, Drones) unless they are absolutely necessary and supported by infrastructure.
-
-    Objective: Critically analyze the feasibility of the following NGO project.
+    Persona: Critical Grant Auditor.
+    Task: Assess project feasibility (Stage 1: High Level Overview).
     
-    Project Parameters:
-    - Title: ${input.title}
-    - Location: ${input.location}
-    - Sector: ${input.sector}
-    - Budget: ${input.budget} (${input.fundingSource})
-    - Duration: ${input.duration}
-    - Technology: ${input.technologyLevel}
-    - Local Partner: ${input.localPartner}
-    - Team Experience: ${input.teamExperience}
-    - Methodology/Description: ${input.description}
-    
+    Project: ${input.title} in ${input.location}.
+    Sector: ${input.sector}. Budget: ${input.budget}.
+    Desc: ${input.description}.
+    Tech: ${input.technologyLevel}. Team: ${input.teamExperience}.
     ${historyContext}
 
-    Scoring Guidelines (STRICT):
-    1. Baseline Score: Start at 50/100 (Neutral). The project must EARN every point above that.
-    2. Penalties (Apply Heavily):
-       - "High Tech" in low-infrastructure areas without a maintenance plan (-20 points).
-       - "New/Volunteer Teams" managing large budgets >$100k (-15 points).
-       - "Direct Implementation" (No local partner) in a foreign country (-10 points).
-       - Short durations (<1 year) for complex behavioral change (-10 points).
-    3. Bonuses: Only award for "Expert" teams (+5), "Low Tech" solutions (+5), or specific evidence of strong local partnership.
-    4. Objectivity: A typical well-meaning pilot usually fails or struggles. A score > 80 should be extremely rare and reserved for perfect alignment.
+    Scoring Guidelines:
+    - Base 50/100.
+    - Penalize for high-tech in low-resource areas, lack of local partners, or inexperienced teams.
+    - Be objective.
 
-    Output Requirements:
-    - Executive Summary: Be blunt. Focus on the "Hard Truths". Why might this fail? Is the budget realistic? Is the tech appropriate? Keep it concise (max 3 sentences).
-    - Critical Risks: List 3-5 specific, fatal flaws.
-    - Schedule: Create a realistic Gantt chart data structure.
-    - Pivots: Provide 3 concrete "Pivots" (strategic changes). For each pivot, you MUST specify exactly which project parameters (Budget, Duration, Partner, etc.) should change. keep rationale concise.
-
-    Optimization: Keep all text descriptions concise (max 2 sentences) to ensure speed. Ensure JSON is minimized.
-
-    Task:
-    1. Simulate the project lifecycle.
-    2. Analyze risks, stakeholders, and budget.
+    Output:
+    1. Overall Score (0-100).
+    2. Sentiment Score (0-100).
+    3. Sustainability Score (0-100).
+    4. Executive Summary (Max 3 sentences, focus on hard truths).
+    5. Key Wins (3 bullet points).
   `;
 
-  // Helper to sanitize JSON string (remove markdown code blocks)
-  const cleanJsonResponse = (text: string): string => {
-    return text.replace(/```json\n|\n```/g, "").replace(/```/g, "").trim();
+  const schema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      overallScore: { type: Type.NUMBER },
+      communitySentiment: { type: Type.NUMBER },
+      sustainabilityScore: { type: Type.NUMBER },
+      narrative: { type: Type.STRING },
+      successFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+    },
+    required: ["overallScore", "communitySentiment", "sustainabilityScore", "narrative", "successFactors"],
   };
 
-  try {
-    const response = await ai.models.generateContent({
-      model: model,
-      contents: prompt,
-      config: {
-        temperature: 0.2, 
-        responseMimeType: "application/json",
-        responseSchema: {
+  const response = await models.generateContent({
+    model: MODEL_NAME,
+    contents: prompt,
+    config: { temperature: 0.2, responseMimeType: "application/json", responseSchema: schema }
+  });
+
+  return JSON.parse(cleanJsonResponse(response.text!));
+};
+
+// --- STAGE 2: Deep Dive Analytics ---
+export const runSimulationStage2 = async (input: ProjectInput, stage1: Partial<SimulationResult>): Promise<Partial<SimulationResult>> => {
+  const models = getModel();
+  
+  const prompt = `
+    Context: Project "${input.title}" scored ${stage1.overallScore}/100. Summary: ${stage1.narrative}.
+    Task: Generate detailed risk and stakeholder analytics (Stage 2).
+    
+    CRITICAL INSTRUCTION: Ensure the "Timeline" and "Stakeholder Map" are NOT arbitrary. They must be logically consistent with the risks and description provided.
+    - If the team is inexperienced, the Timeline must show early struggles.
+    - If the tech is high-level in a rural area, the "Stakeholder Map" must show skepticism from locals.
+
+    Output:
+    1. Sentiment Forecast (Timeline of 6 points).
+    2. Stakeholder Map (5 groups).
+    3. Feasibility Metrics (5 categories: Financial, Technical, Cultural, Regulatory, Operational).
+    4. Risk Matrix (5 risks, likelihood 1-10, severity 1-10).
+    5. Critical Flaws (3 text strings).
+  `;
+
+  const schema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      timeline: {
+        type: Type.ARRAY,
+        items: {
           type: Type.OBJECT,
-          properties: {
-            overallScore: { type: Type.NUMBER },
-            communitySentiment: { type: Type.NUMBER },
-            sustainabilityScore: { type: Type.NUMBER },
-            metrics: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  category: { type: Type.STRING },
-                  score: { type: Type.NUMBER },
-                  reasoning: { type: Type.STRING },
-                },
-                required: ["category", "score", "reasoning"],
-              },
-            },
-            timeline: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  month: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  sentimentScore: { type: Type.NUMBER },
-                },
-                required: ["month", "title", "description", "sentimentScore"],
-              },
-            },
-            schedule: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  task: { type: Type.STRING },
-                  startMonth: { type: Type.NUMBER },
-                  durationMonths: { type: Type.NUMBER },
-                  type: { type: Type.STRING, enum: ['planning', 'execution', 'milestone'] }
-                },
-                required: ["task", "startMonth", "durationMonths", "type"]
-              }
-            },
-            budgetBreakdown: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  category: { type: Type.STRING },
-                  percentage: { type: Type.NUMBER },
-                },
-                required: ["category", "percentage"],
-              },
-            },
-            stakeholderAnalysis: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  group: { type: Type.STRING },
-                  sentiment: { type: Type.NUMBER },
-                  influence: { type: Type.STRING },
-                },
-                required: ["group", "sentiment", "influence"],
-              },
-            },
-            riskAnalysis: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  risk: { type: Type.STRING },
-                  likelihood: { type: Type.NUMBER },
-                  severity: { type: Type.NUMBER },
-                },
-                required: ["risk", "likelihood", "severity"],
-              },
-            },
-            longTermImpact: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  year: { type: Type.STRING },
-                  social: { type: Type.NUMBER },
-                  economic: { type: Type.NUMBER },
-                  environmental: { type: Type.NUMBER },
-                },
-                required: ["year", "social", "economic", "environmental"],
-              },
-            },
-            narrative: { type: Type.STRING },
-            risks: { type: Type.ARRAY, items: { type: Type.STRING } },
-            successFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
-            pivots: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  title: { type: Type.STRING },
-                  modification: { type: Type.STRING },
-                  rationale: { type: Type.STRING },
-                  changes: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: { type: Type.STRING },
-                      location: { type: Type.STRING },
-                      targetAudience: { type: Type.STRING },
-                      sector: { type: Type.STRING },
-                      budget: { type: Type.STRING },
-                      duration: { type: Type.STRING },
-                      description: { type: Type.STRING },
-                      localPartner: { type: Type.STRING },
-                      technologyLevel: { type: Type.STRING },
-                      fundingSource: { type: Type.STRING },
-                      teamExperience: { type: Type.STRING },
-                    },
-                  }
-                },
-                required: ["title", "modification", "rationale", "changes"],
-              },
-            },
-          },
-          required: [
-            "overallScore", "communitySentiment", "sustainabilityScore", "metrics",
-            "timeline", "schedule", "budgetBreakdown", "stakeholderAnalysis", "riskAnalysis",
-            "longTermImpact", "narrative", "risks", "successFactors", "pivots"
-          ],
+          properties: { month: { type: Type.STRING }, title: { type: Type.STRING }, description: { type: Type.STRING }, sentimentScore: { type: Type.NUMBER } },
         },
       },
-    });
+      stakeholderAnalysis: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: { group: { type: Type.STRING }, sentiment: { type: Type.NUMBER }, influence: { type: Type.STRING } },
+        },
+      },
+      metrics: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: { category: { type: Type.STRING }, score: { type: Type.NUMBER }, reasoning: { type: Type.STRING } },
+        },
+      },
+      riskAnalysis: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: { risk: { type: Type.STRING }, likelihood: { type: Type.NUMBER }, severity: { type: Type.NUMBER } },
+        },
+      },
+      risks: { type: Type.ARRAY, items: { type: Type.STRING } },
+    },
+    required: ["timeline", "stakeholderAnalysis", "metrics", "riskAnalysis", "risks"],
+  };
 
-    const text = response.text;
-    if (!text) {
-      throw new Error("No response received from AI model.");
-    }
-    
-    const cleanText = cleanJsonResponse(text);
-    return JSON.parse(cleanText) as SimulationResult;
-    
-  } catch (error: any) {
-     console.error("Simulation Error:", error);
-     throw new Error(error.message || "Failed to generate simulation. Please check parameters and try again.");
-  }
+  const response = await models.generateContent({
+    model: MODEL_NAME,
+    contents: prompt,
+    config: { temperature: 0.2, responseMimeType: "application/json", responseSchema: schema }
+  });
+
+  return JSON.parse(cleanJsonResponse(response.text!));
 };
+
+// --- STAGE 3: Actionable Strategy ---
+export const runSimulationStage3 = async (input: ProjectInput, stage1: Partial<SimulationResult>, stage2: Partial<SimulationResult>): Promise<Partial<SimulationResult>> => {
+  const models = getModel();
+  
+  const prompt = `
+    Context: Project "${input.title}" scored ${stage1.overallScore}/100. Critical Flaws: ${stage2.risks?.join(', ')}.
+    Task: Generate implementation schedule and strategic pivots (Stage 3).
+    
+    Output:
+    1. Implementation Schedule (Gantt chart items, realistic durations).
+    2. Strategic Pivots (3 suggestions with specific parameter changes to improve score).
+  `;
+
+  const schema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      schedule: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: { task: { type: Type.STRING }, startMonth: { type: Type.NUMBER }, durationMonths: { type: Type.NUMBER }, type: { type: Type.STRING, enum: ['planning', 'execution', 'milestone'] } },
+        },
+      },
+      pivots: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            modification: { type: Type.STRING },
+            rationale: { type: Type.STRING },
+            changes: {
+              type: Type.OBJECT,
+              properties: {
+                budget: { type: Type.STRING },
+                duration: { type: Type.STRING },
+                localPartner: { type: Type.STRING },
+                technologyLevel: { type: Type.STRING },
+                fundingSource: { type: Type.STRING },
+                teamExperience: { type: Type.STRING },
+                description: { type: Type.STRING }
+              },
+            }
+          },
+          required: ["title", "modification", "rationale", "changes"],
+        },
+      },
+    },
+    required: ["schedule", "pivots"],
+  };
+
+  const response = await models.generateContent({
+    model: MODEL_NAME,
+    contents: prompt,
+    config: { temperature: 0.2, responseMimeType: "application/json", responseSchema: schema }
+  });
+
+  return JSON.parse(cleanJsonResponse(response.text!));
+};
+
+// Keep the old function signature for backward compatibility if needed, but redirects to staged
+export const runSimulation = async (input: ProjectInput): Promise<SimulationResult> => {
+   const s1 = await runSimulationStage1(input);
+   const s2 = await runSimulationStage2(input, s1);
+   const s3 = await runSimulationStage3(input, s1, s2);
+   return { ...s1, ...s2, ...s3 } as SimulationResult;
+}

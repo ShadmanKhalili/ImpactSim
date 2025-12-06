@@ -3,20 +3,21 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { ProjectForm } from './components/ProjectForm';
 import { SimulationDashboard } from './components/SimulationDashboard';
 import { ProjectInput, SimulationResult, SimulationStatus, PivotSuggestion } from './types';
-import { runSimulation, checkApiKeyStatus } from './services/geminiService';
+import { runSimulationStage1, runSimulationStage2, runSimulationStage3, checkApiKeyStatus } from './services/geminiService';
 
+// Initialize with empty strings for a clean "Blank State"
 const DEFAULT_PROJECT: ProjectInput = {
-  title: "Solar Community Kitchen",
-  location: "Barisal, Bangladesh",
-  targetAudience: "Rural Households",
-  sector: "Energy / Livelihood",
-  budget: "$50,000",
-  duration: "1 Year",
-  localPartner: "Local Women's Coop",
-  technologyLevel: "Medium Tech",
-  fundingSource: "International Grant",
-  teamExperience: "Experienced (3-5 years)",
-  description: "A centralized solar-powered kitchen facility in the village center. The goal is to reduce household biomass fuel consumption. Families will bring their raw food to the center to cook on clean stoves for a small fee.",
+  title: "",
+  location: "",
+  targetAudience: "",
+  sector: "",
+  budget: "",
+  duration: "",
+  localPartner: "",
+  technologyLevel: "",
+  fundingSource: "",
+  teamExperience: "",
+  description: "",
   strategyHistory: []
 };
 
@@ -25,17 +26,11 @@ const App: React.FC = () => {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [status, setStatus] = useState<SimulationStatus>(SimulationStatus.IDLE);
   const [error, setError] = useState<string | null>(null);
-  const [hasKey, setHasKey] = useState<boolean>(false);
   const [progress, setProgress] = useState(0);
 
   // Feedback State
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
-
-  useEffect(() => {
-    const status = checkApiKeyStatus();
-    setHasKey(status.hasKey);
-  }, []);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -44,11 +39,11 @@ const App: React.FC = () => {
       interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 98) return 98;
-          const remaining = 100 - prev;
-          const jump = Math.max(0.2, remaining * 0.08 * Math.random()); 
+          // Fast progress for Stage 1 since it's the blocking UI part
+          const jump = Math.max(1, (100 - prev) * 0.1); 
           return prev + jump;
         });
-      }, 200);
+      }, 100);
     }
     return () => clearInterval(interval);
   }, [status]);
@@ -56,14 +51,33 @@ const App: React.FC = () => {
   const handleSimulate = useCallback(async () => {
     setStatus(SimulationStatus.LOADING);
     setError(null);
+    setResult(null);
+
     try {
-      const data = await runSimulation(input);
-      setResult(data);
-      setStatus(SimulationStatus.SUCCESS);
+      // --- STAGE 1: Summary & Scores ---
+      const stage1Data = await runSimulationStage1(input);
+      // We cast to full result for local state, knowing some fields are missing (handled by optional types)
+      const partialResult = stage1Data as SimulationResult;
+      setResult(partialResult);
+      setStatus(SimulationStatus.SUCCESS); // Show Dashboard immediately
+
+      // --- STAGE 2: Charts & Risks ---
+      // Fetch in background, update state when ready
+      try {
+        const stage2Data = await runSimulationStage2(input, stage1Data);
+        setResult(prev => prev ? ({ ...prev, ...stage2Data }) : null);
+
+        // --- STAGE 3: Schedule & Pivots ---
+        const stage3Data = await runSimulationStage3(input, stage1Data, stage2Data);
+        setResult(prev => prev ? ({ ...prev, ...stage3Data }) : null);
+      } catch (innerErr) {
+        console.error("Background loading failed", innerErr);
+      }
+
     } catch (err: any) {
       console.error(err);
       const msg = err.message || "";
-      if (msg.includes("Missing API Key") || msg.includes("API Key")) {
+      if (msg.includes("Missing API Key")) {
         setError("API Key Error: " + msg);
       } else {
         setError("Simulation failed: " + msg);
@@ -74,22 +88,17 @@ const App: React.FC = () => {
 
   const handleApplyPivot = (pivot: PivotSuggestion) => {
     setInput(prev => {
-      // Create a history entry
       const newHistoryEntry = `[${pivot.title}] ${pivot.modification}`;
       const updatedHistory = prev.strategyHistory ? [...prev.strategyHistory, newHistoryEntry] : [newHistoryEntry];
-      
       const newChanges = pivot.changes || {};
 
       return {
         ...prev,
         ...newChanges,
         strategyHistory: updatedHistory,
-        // If the pivot suggests a description change, use it, otherwise keep existing
         description: newChanges.description || prev.description 
       };
     });
-    
-    // Removed window.scrollTo to keep user context
   };
 
   const handleFeedbackSubmit = () => {
@@ -101,11 +110,9 @@ const App: React.FC = () => {
   };
 
   const getLoadingText = (p: number) => {
-    if (p < 20) return "Connecting to Impact Engine (Gemini 2.5)...";
-    if (p < 40) return "Analysing geopolitical context...";
-    if (p < 60) return "Simulating stakeholder reactions...";
-    if (p < 80) return "Building financial risk models...";
-    return "Generating implementation timeline...";
+    if (p < 30) return "Connecting to Impact Engine (Gemini 2.5)...";
+    if (p < 60) return "Analyzing feasibility parameters...";
+    return "Generating Executive Summary...";
   };
 
   return (
@@ -129,7 +136,6 @@ const App: React.FC = () => {
                <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">Predictive NGO Project Engine</p>
              </div>
           </div>
-          
           <div className="hidden md:flex items-center gap-4">
             <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-300">
                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -142,7 +148,6 @@ const App: React.FC = () => {
       <main className="container mx-auto px-6 mt-8 flex-grow pb-12 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
-          {/* Increased width for Project Form (col-span-5 instead of 3) */}
           <div className="xl:col-span-5 lg:col-span-5">
             <div className="sticky top-24 animate-fade-in-up">
                <ProjectForm 
@@ -157,7 +162,6 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Adjusted Dashboard width (col-span-7 instead of 9) */}
           <div className="xl:col-span-7 lg:col-span-7">
             {status === SimulationStatus.IDLE && (
               <div className="glass-panel rounded-3xl border border-white p-16 text-center flex flex-col items-center justify-center min-h-[600px] animate-fade-in delay-100 bg-white/95">
@@ -169,7 +173,7 @@ const App: React.FC = () => {
                 </div>
                 <h2 className="text-4xl font-extrabold text-slate-800 mb-4 tracking-tight">Design. Simulate. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Impact.</span></h2>
                 <p className="text-slate-600 max-w-lg mx-auto mb-10 text-lg leading-relaxed font-medium">
-                  Test your international development projects against real-world constraints using AI. Get risk analysis, stakeholder maps, and budgets in seconds.
+                  Test your international development projects against real-world constraints using AI.
                 </p>
                 <div className="flex gap-4">
                    <div className="h-1 w-16 rounded-full bg-slate-200"></div>
@@ -194,27 +198,13 @@ const App: React.FC = () => {
               <div className="glass-panel rounded-3xl border border-white p-12 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden bg-white/95">
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[80px] animate-pulse"></div>
                  <div className="relative z-10 w-full max-w-lg text-center">
-                    <div className="mb-8 relative inline-block">
-                       <div className="absolute inset-0 bg-indigo-500 blur-lg opacity-40 animate-pulse"></div>
-                       <div className="relative bg-white p-5 rounded-2xl shadow-lg">
-                          <svg className="animate-spin h-10 w-10 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                       </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Generating Simulation Model</h3>
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Generating Initial Assessment...</h3>
                     <p className="text-slate-500 mb-8 h-6">{getLoadingText(progress)}</p>
                     <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
                        <div 
                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 w-full animate-[shimmer_2s_infinite]"
                          style={{ width: `${progress}%`, transition: 'width 0.3s ease-out' }}
                        ></div>
-                    </div>
-                    <div className="flex justify-between mt-2 text-xs font-bold text-slate-400">
-                       <span>0%</span>
-                       <span>{Math.round(progress)}%</span>
-                       <span>100%</span>
                     </div>
                  </div>
               </div>
@@ -228,8 +218,8 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
-
-      <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur-md py-6 mt-auto">
+      
+       <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur-md py-6 mt-auto">
          <div className="container mx-auto px-6 flex justify-between items-center text-xs text-slate-400">
            <div className="font-medium">
              &copy; 2025 ImpactSim. Created by Shadman Khalili.
@@ -239,13 +229,11 @@ const App: React.FC = () => {
                 onClick={() => setIsFeedbackOpen(true)}
                 className="hover:text-white transition-colors flex items-center gap-2 group"
               >
-                <svg className="group-hover:-translate-y-0.5 transition-transform" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 Send Feedback
               </button>
            </div>
          </div>
       </footer>
-
       {isFeedbackOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsFeedbackOpen(false)}></div>
@@ -253,9 +241,7 @@ const App: React.FC = () => {
             <div className="p-6">
                <div className="flex justify-between items-center mb-6">
                  <h3 className="text-xl font-bold text-slate-800">Your Feedback</h3>
-                 <button onClick={() => setIsFeedbackOpen(false)} className="text-slate-400 hover:text-slate-600">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                 </button>
+                 <button onClick={() => setIsFeedbackOpen(false)} className="text-slate-400 hover:text-slate-600">X</button>
                </div>
                <textarea
                 value={feedbackText}
