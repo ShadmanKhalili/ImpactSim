@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProjectInput } from '../types';
 
@@ -186,7 +185,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
 
   const InputGroup = ({ label, name, value, placeholder, icon }: any) => (
     <div className="relative group">
-      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-indigo-500 transition-colors">
+      <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">
         {label}
       </label>
       <div className="relative">
@@ -199,17 +198,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           value={value}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-11 pr-4 py-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-base text-gray-800 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder-gray-400 hover:bg-white shadow-sm"
+          className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all placeholder-gray-400 shadow-sm"
         />
       </div>
     </div>
   );
 
   return (
-    <div className="glass-panel rounded-2xl p-8 shadow-xl border border-white/50 h-fit">
+    <div className="glass-panel rounded-2xl p-8 shadow-xl border border-white h-fit">
       
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
         <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
           <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl text-white shadow-lg shadow-indigo-500/30">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -218,7 +217,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         </h2>
         <button 
           onClick={handleRandomize}
-          className="p-2.5 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 hover:scale-110 active:scale-95 transition-all"
+          className="p-2.5 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 hover:scale-110 active:scale-95 transition-all shadow-sm"
           title="Auto-fill Random Scenario"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
@@ -292,7 +291,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
               name="localPartner"
               value={input.localPartner}
               onChange={handleChange}
-              className="w-full px-4 py-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
+              className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
             >
               <option value="">Select...</option>
               <option value="None (Direct Implementation)">None (Direct)</option>
@@ -309,7 +308,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
               name="technologyLevel"
               value={input.technologyLevel}
               onChange={handleChange}
-              className="w-full px-4 py-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
+              className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
             >
               <option value="">Select...</option>
               <option value="Low Tech">Low Tech</option>
@@ -325,7 +324,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             name="teamExperience"
             value={input.teamExperience}
             onChange={handleChange}
-            className="w-full px-4 py-3.5 bg-gray-50/80 border border-gray-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
+            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
           >
             <option value="">Select...</option>
             <option value="New / Volunteer Team">New / Volunteer Team</option>
@@ -343,21 +342,21 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             onChange={handleChange}
             rows={5}
             placeholder="Describe the project approach..."
-            className="w-full px-4 py-3 border border-gray-200 bg-gray-50/80 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all resize-none text-sm leading-relaxed hover:bg-white shadow-sm"
+            className="w-full px-4 py-3 border border-gray-200 bg-white rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all resize-none text-sm text-gray-800 font-medium leading-relaxed hover:bg-white shadow-sm"
           />
         </div>
 
         {/* NEW: Strategy Evolution Section */}
         {input.strategyHistory && input.strategyHistory.length > 0 && (
-          <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-100">
-             <label className="block text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+             <label className="block text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                Strategy Evolution
              </label>
              <div className="space-y-2">
                {input.strategyHistory.map((pivot, idx) => (
-                 <div key={idx} className="text-xs text-slate-600 bg-white p-2 rounded-lg shadow-sm border border-indigo-50 flex items-start gap-2">
-                   <span className="text-indigo-400 mt-0.5">•</span>
+                 <div key={idx} className="text-xs text-slate-700 font-medium bg-white p-2 rounded-lg shadow-sm border border-indigo-100 flex items-start gap-2">
+                   <span className="text-indigo-500 mt-0.5">•</span>
                    {pivot}
                  </div>
                ))}
@@ -368,14 +367,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         <div className="flex gap-3 pt-4">
            <button
              onClick={handleSaveScenario}
-             className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-200 shadow-sm hover:shadow active:scale-[0.98]"
+             className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-700 text-xs font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-200 shadow-sm hover:shadow active:scale-[0.98]"
            >
              Save
            </button>
            {hasSavedScenario && (
              <button
                onClick={handleLoadScenario}
-               className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-200 shadow-sm hover:shadow active:scale-[0.98]"
+               className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-700 text-xs font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-200 shadow-sm hover:shadow active:scale-[0.98]"
              >
                Load
              </button>

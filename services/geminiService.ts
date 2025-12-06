@@ -15,7 +15,7 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const model = "gemini-3-pro-preview";
+  const model = "gemini-2.5-flash";
 
   // Incorporate strategy history into the context
   const historyContext = input.strategyHistory && input.strategyHistory.length > 0

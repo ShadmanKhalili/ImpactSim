@@ -101,7 +101,7 @@ const App: React.FC = () => {
   };
 
   const getLoadingText = (p: number) => {
-    if (p < 20) return "Connecting to Impact Engine (Gemini 3.0)...";
+    if (p < 20) return "Connecting to Impact Engine (Gemini 2.5)...";
     if (p < 40) return "Analysing geopolitical context...";
     if (p < 60) return "Simulating stakeholder reactions...";
     if (p < 80) return "Building financial risk models...";
@@ -121,7 +121,7 @@ const App: React.FC = () => {
              <div className="relative group">
                 <div className="absolute inset-0 bg-indigo-500 blur opacity-40 group-hover:opacity-75 transition-opacity duration-500"></div>
                 <div className="relative bg-gradient-to-br from-indigo-600 to-violet-600 p-2 rounded-xl text-white shadow-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5 3"/></svg>
                 </div>
              </div>
              <div>
@@ -151,14 +151,14 @@ const App: React.FC = () => {
                  isLoading={status === SimulationStatus.LOADING}
                />
                <div className="mt-6 text-center text-xs text-slate-500/60 font-medium">
-                  Powered by Google Gemini 3.0 Pro
+                  Powered by Google Gemini 2.5 Flash
                </div>
             </div>
           </div>
 
           <div className="xl:col-span-9 lg:col-span-8">
             {status === SimulationStatus.IDLE && (
-              <div className="glass-panel rounded-3xl border border-white/50 p-16 text-center flex flex-col items-center justify-center min-h-[600px] animate-fade-in delay-100">
+              <div className="glass-panel rounded-3xl border border-white p-16 text-center flex flex-col items-center justify-center min-h-[600px] animate-fade-in delay-100 bg-white/95">
                 <div className="relative mb-8 group">
                    <div className="absolute inset-0 bg-indigo-500/30 rounded-full blur-xl group-hover:blur-2xl transition-all duration-700"></div>
                    <div className="relative bg-white p-6 rounded-2xl shadow-xl shadow-indigo-500/20 animate-float">
@@ -166,7 +166,7 @@ const App: React.FC = () => {
                    </div>
                 </div>
                 <h2 className="text-4xl font-extrabold text-slate-800 mb-4 tracking-tight">Design. Simulate. <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Impact.</span></h2>
-                <p className="text-slate-500 max-w-lg mx-auto mb-10 text-lg leading-relaxed">
+                <p className="text-slate-600 max-w-lg mx-auto mb-10 text-lg leading-relaxed font-medium">
                   Test your international development projects against real-world constraints using AI. Get risk analysis, stakeholder maps, and budgets in seconds.
                 </p>
                 <div className="flex gap-4">
@@ -178,7 +178,7 @@ const App: React.FC = () => {
             )}
 
             {status === SimulationStatus.ERROR && (
-              <div className="glass-panel bg-rose-50/50 p-8 rounded-2xl border border-rose-200 text-center animate-fade-in-up">
+              <div className="glass-panel bg-rose-50/90 p-8 rounded-2xl border border-rose-200 text-center animate-fade-in-up">
                 <div className="inline-flex p-3 bg-rose-100 text-rose-600 rounded-full mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 </div>
@@ -189,7 +189,7 @@ const App: React.FC = () => {
             )}
 
             {status === SimulationStatus.LOADING && (
-              <div className="glass-panel rounded-3xl border border-white/50 p-12 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="glass-panel rounded-3xl border border-white p-12 min-h-[600px] flex flex-col items-center justify-center relative overflow-hidden bg-white/95">
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[80px] animate-pulse"></div>
                  <div className="relative z-10 w-full max-w-lg text-center">
                     <div className="mb-8 relative inline-block">
@@ -247,7 +247,7 @@ const App: React.FC = () => {
       {isFeedbackOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsFeedbackOpen(false)}></div>
-          <div className="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 animate-fade-in-up overflow-hidden border border-white/40">
+          <div className="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 animate-fade-in-up overflow-hidden border border-white/40 bg-white">
             <div className="p-6">
                <div className="flex justify-between items-center mb-6">
                  <h3 className="text-xl font-bold text-slate-800">Your Feedback</h3>
