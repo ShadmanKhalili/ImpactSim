@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
+        darkMode: 'class', // Enable class-based dark mode if needed, though we primarily use CSS vars
         theme: {
           extend: {
             fontFamily: {
@@ -28,36 +29,80 @@
       }
     </script>
     <style>
-      body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: #0f172a;
-        overflow-x: hidden;
-      }
-      
-      /* Mesh Gradient Background */
-      .mesh-bg {
-        background-color: #0f172a;
-        background-image: 
-          radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-          radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-          radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-        min-height: 100vh;
+      :root {
+        /* DARK MODE (Default) variables */
+        --bg-color: #0f172a;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        
+        --glass-bg: rgba(30, 41, 59, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --glass-header: rgba(15, 23, 42, 0.8);
+        
+        --mesh-1: hsla(253,16%,20%,1);
+        --mesh-2: hsla(225,39%,15%,1);
+        --mesh-3: hsla(339,49%,20%,1);
+        
+        --scroll-track: rgba(255,255,255,0.05);
+        --scroll-thumb: #475569;
+        --scroll-thumb-hover: #64748b;
       }
 
-      /* Glassmorphism - Improved Legibility */
+      body.light-mode {
+        /* LIGHT MODE variables */
+        --bg-color: #f8fafc;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(203, 213, 225, 0.6);
+        --glass-header: rgba(255, 255, 255, 0.85);
+        
+        /* Softer pastels for light mode mesh */
+        --mesh-1: hsla(253, 50%, 95%, 1);
+        --mesh-2: hsla(225, 50%, 90%, 1);
+        --mesh-3: hsla(339, 50%, 95%, 1);
+        
+        --scroll-track: rgba(0,0,0,0.05);
+        --scroll-thumb: #cbd5e1;
+        --scroll-thumb-hover: #94a3b8;
+      }
+
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      /* Dynamic Mesh Gradient */
+      .mesh-bg {
+        background-color: var(--bg-color);
+        background-image: 
+          radial-gradient(at 0% 0%, var(--mesh-1) 0, transparent 50%), 
+          radial-gradient(at 50% 0%, var(--mesh-2) 0, transparent 50%), 
+          radial-gradient(at 100% 0%, var(--mesh-3) 0, transparent 50%);
+        min-height: 100vh;
+        transition: background-image 0.5s ease;
+      }
+
+      /* Dynamic Glassmorphism */
       .glass-panel {
-        background: rgba(255, 255, 255, 0.92); /* Higher opacity for legibility */
+        background: var(--glass-bg);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: background 0.3s ease, border-color 0.3s ease;
       }
       
       .glass-header {
-        background: rgba(15, 23, 42, 0.9); /* Darker, more opaque header */
+        background: var(--glass-header);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid var(--glass-border);
+        transition: background 0.3s ease, border-color 0.3s ease;
       }
 
       /* Custom Scrollbar */
@@ -66,14 +111,14 @@
         height: 6px;
       }
       .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.05);
+        background: var(--scroll-track);
       }
       .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
+        background: var(--scroll-thumb);
         border-radius: 10px;
       }
       .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
+        background: var(--scroll-thumb-hover);
       }
 
       /* Animations */
@@ -91,8 +136,8 @@
         100% { transform: translateY(0px); }
       }
       @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.2); }
-        50% { box-shadow: 0 0 25px rgba(124, 58, 237, 0.6); }
+        0%, 100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.1); }
+        50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.3); }
       }
       @keyframes shimmer {
         0% { transform: translateX(-100%); }
@@ -111,8 +156,85 @@
       .delay-500 { animation-delay: 500ms; }
       .delay-600 { animation-delay: 600ms; }
       .delay-700 { animation-delay: 700ms; }
+
+      /* PRINT STYLES */
+      @media print {
+        @page {
+          margin: 0.5cm;
+          size: landscape;
+        }
+        
+        body {
+          background: white !important;
+          color: black !important;
+          font-size: 12px;
+        }
+        body.light-mode {
+           /* Ensure vars are reset for print */
+           --bg-color: white;
+        }
+
+        .mesh-bg {
+          background-image: none !important;
+          background-color: white !important;
+        }
+
+        /* Hide UI elements not needed for report */
+        header, 
+        footer, 
+        button, 
+        .no-print, 
+        .sticky { 
+          display: none !important; 
+        }
+
+        /* Reset Glass Panels for Print clarity */
+        .glass-panel {
+          background: white !important;
+          border: 1px solid #ddd !important;
+          box-shadow: none !important;
+          break-inside: avoid;
+          margin-bottom: 20px;
+        }
+
+        /* Layout Adjustments */
+        .container {
+          max-width: 100% !important;
+          width: 100% !important;
+          padding: 0 !important;
+          margin: 0 !important;
+        }
+
+        .grid {
+          display: block !important;
+        }
+
+        /* Force Dashboard to be visible and full width, hide Sidebar */
+        main > div.grid > div:first-child {
+          display: none !important;
+        }
+        main > div.grid > div:last-child {
+          width: 100% !important;
+          display: block !important;
+        }
+
+        /* Charts & Visuals */
+        .recharts-responsive-container {
+          width: 100% !important;
+          height: 300px !important;
+        }
+        
+        h1, h2, h3 { color: black !important; }
+        p, span, div { color: #333 !important; }
+
+        .overflow-y-auto, .overflow-x-auto, .custom-scrollbar {
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+        }
+      }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://aistudiocdn.com/react@^19.2.1",
@@ -126,7 +248,7 @@
 }
 </script>
 </head>
-  <body class="mesh-bg text-slate-800 antialiased">
+  <body class="mesh-bg antialiased">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

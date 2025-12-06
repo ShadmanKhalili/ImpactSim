@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ProjectInput } from '../types';
 
@@ -7,6 +6,7 @@ interface ProjectFormProps {
   setInput: React.Dispatch<React.SetStateAction<ProjectInput>>;
   onSimulate: () => void;
   isLoading: boolean;
+  isDarkMode: boolean;
 }
 
 const STORAGE_KEY = 'impactSim_savedScenario';
@@ -182,7 +182,7 @@ const PRESETS: ProjectInput[] = [
   }
 ];
 
-export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSimulate, isLoading }) => {
+export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSimulate, isLoading, isDarkMode }) => {
   const [hasSavedScenario, setHasSavedScenario] = useState(false);
   const [manualPivot, setManualPivot] = useState("");
 
@@ -237,13 +237,23 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
     setManualPivot("");
   };
 
+  const inputClass = `w-full px-4 py-3 border rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all shadow-sm ${
+    isDarkMode 
+      ? 'bg-slate-900/50 border-slate-700/50 text-white focus:bg-slate-900 focus:border-indigo-500/50 placeholder-slate-600' 
+      : 'bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-indigo-500/50 placeholder-slate-400'
+  }`;
+
+  const labelClass = `block text-[10px] font-bold uppercase tracking-widest mb-1.5 transition-colors ${
+    isDarkMode ? 'text-indigo-300' : 'text-indigo-600'
+  }`;
+
   const InputGroup = ({ label, name, value, placeholder, icon }: any) => (
     <div className="relative group w-full">
-      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 transition-colors">
+      <label className={labelClass}>
         {label}
       </label>
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-indigo-500 transition-colors">
+        <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors ${isDarkMode ? 'text-slate-500 group-focus-within:text-indigo-400' : 'text-slate-400 group-focus-within:text-indigo-600'}`}>
           {icon}
         </div>
         <input
@@ -252,20 +262,21 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           value={value}
           onChange={handleChange}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-3 bg-slate-50 border-0 rounded-xl text-sm text-gray-800 font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all placeholder-gray-300"
+          className={`pl-10 pr-4 ${inputClass}`}
         />
       </div>
     </div>
   );
 
   return (
-    <div className="glass-panel rounded-2xl p-8 shadow-xl border border-white h-fit bg-white/95">
+    <div className="glass-panel rounded-2xl p-8 shadow-xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-75"></div>
       
       {/* Header */}
-      <div className="flex flex-col gap-4 mb-8 pb-6 border-b border-gray-100">
+      <div className={`flex flex-col gap-4 mb-8 pb-6 border-b ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+          <h2 className={`text-xl font-bold flex items-center gap-3 ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
+            <div className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-xl text-white shadow-lg shadow-indigo-500/20">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </div>
             Design Project
@@ -274,9 +285,13 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         
         <button 
           onClick={handleRandomize}
-          className="w-full py-2.5 px-4 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-indigo-100 hover:text-indigo-700 transition-all shadow-sm border border-indigo-100 flex items-center justify-center gap-2"
+          className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wide transition-all shadow-sm border flex items-center justify-center gap-2 group ${
+            isDarkMode 
+              ? 'bg-slate-800/80 hover:bg-slate-800 text-indigo-300 border-slate-700 hover:border-indigo-500/30' 
+              : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-100'
+          }`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-5.5 5.5"/><path d="m21 3-9 9"/><path d="m12.6 12.6-9.9 9.9"/><path d="M5 3a2 2 0 0 0-2 2v2"/><path d="M3 13v2a2 2 0 0 0 2 2h2"/><path d="M13 3h2a2 2 0 0 1 2 2v2"/><path d="M21 13v2a2 2 0 0 1-2 2h-2"/></svg>
+          <svg className={`transition-colors ${isDarkMode ? 'group-hover:text-indigo-400' : 'text-indigo-600'}`} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21 16-5.5 5.5"/><path d="m21 3-9 9"/><path d="m12.6 12.6-9.9 9.9"/><path d="M5 3a2 2 0 0 0-2 2v2"/><path d="M3 13v2a2 2 0 0 0 2 2h2"/><path d="M13 3h2a2 2 0 0 1 2 2v2"/><path d="M21 13v2a2 2 0 0 1-2 2h-2"/></svg>
           ✨ Create Random Scenario
         </button>
       </div>
@@ -347,68 +362,68 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
         {/* Row 4 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Local Partner</label>
+            <label className={labelClass}>Local Partner</label>
             <select
               name="localPartner"
               value={input.localPartner}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl text-sm text-gray-800 font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all shadow-sm"
+              className={inputClass}
             >
-              <option value="">Select...</option>
-              <option value="None (Direct Implementation)">None (Direct)</option>
-              <option value="Community Leaders">Community Leaders</option>
-              <option value="Local NGO">Local NGO</option>
-              <option value="Government Body">Government Body</option>
-              <option value="Religious Institution">Religious Institution</option>
-              <option value="Private Sector">Private Sector</option>
+              <option value="" className={isDarkMode ? "bg-slate-800" : ""}>Select...</option>
+              <option value="None (Direct Implementation)" className={isDarkMode ? "bg-slate-800" : ""}>None (Direct)</option>
+              <option value="Community Leaders" className={isDarkMode ? "bg-slate-800" : ""}>Community Leaders</option>
+              <option value="Local NGO" className={isDarkMode ? "bg-slate-800" : ""}>Local NGO</option>
+              <option value="Government Body" className={isDarkMode ? "bg-slate-800" : ""}>Government Body</option>
+              <option value="Religious Institution" className={isDarkMode ? "bg-slate-800" : ""}>Religious Institution</option>
+              <option value="Private Sector" className={isDarkMode ? "bg-slate-800" : ""}>Private Sector</option>
             </select>
           </div>
           <div>
-             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Tech Level</label>
+             <label className={labelClass}>Tech Level</label>
              <select
               name="technologyLevel"
               value={input.technologyLevel}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl text-sm text-gray-800 font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all shadow-sm"
+              className={inputClass}
             >
-              <option value="">Select...</option>
-              <option value="Low Tech">Low Tech</option>
-              <option value="Medium Tech">Medium Tech</option>
-              <option value="High Tech">High Tech</option>
+              <option value="" className={isDarkMode ? "bg-slate-800" : ""}>Select...</option>
+              <option value="Low Tech" className={isDarkMode ? "bg-slate-800" : ""}>Low Tech</option>
+              <option value="Medium Tech" className={isDarkMode ? "bg-slate-800" : ""}>Medium Tech</option>
+              <option value="High Tech" className={isDarkMode ? "bg-slate-800" : ""}>High Tech</option>
             </select>
           </div>
           <div>
-             <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Team Experience</label>
+             <label className={labelClass}>Team Experience</label>
              <select
               name="teamExperience"
               value={input.teamExperience}
               onChange={handleChange}
-              className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl text-sm text-gray-800 font-medium focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all shadow-sm"
+              className={inputClass}
             >
-              <option value="">Select...</option>
-              <option value="New / Volunteer Team">New / Volunteer Team</option>
-              <option value="Mixed Experience">Mixed Experience</option>
-              <option value="Experienced (3-5 years)">Experienced (3-5 years)</option>
-              <option value="Expert International Consortium">Expert International Consortium</option>
+              <option value="" className={isDarkMode ? "bg-slate-800" : ""}>Select...</option>
+              <option value="New / Volunteer Team" className={isDarkMode ? "bg-slate-800" : ""}>New / Volunteer Team</option>
+              <option value="Mixed Experience" className={isDarkMode ? "bg-slate-800" : ""}>Mixed Experience</option>
+              <option value="Experienced (3-5 years)" className={isDarkMode ? "bg-slate-800" : ""}>Experienced (3-5 years)</option>
+              <option value="Expert International Consortium" className={isDarkMode ? "bg-slate-800" : ""}>Expert International Consortium</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Methodology</label>
+          <label className={labelClass}>Methodology</label>
           <textarea
             name="description"
             value={input.description}
             onChange={handleChange}
             rows={5}
             placeholder="e.g. A centralized solar-powered kitchen facility in the village center..."
-            className="w-full px-4 py-3 bg-slate-50 border-0 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none text-sm text-gray-800 font-medium leading-relaxed shadow-sm"
+            className={inputClass}
           />
         </div>
 
         {/* Strategy Evolution Section */}
-        <div className="bg-indigo-50/50 rounded-xl p-4 border border-indigo-50">
-           <label className="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+        <div className={`rounded-xl p-4 border ${isDarkMode ? 'bg-indigo-900/20 border-indigo-500/20' : 'bg-indigo-50 border-indigo-200'}`}>
+           <label className={`block text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
              Strategy Evolution
            </label>
@@ -416,14 +431,14 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
            {input.strategyHistory && input.strategyHistory.length > 0 ? (
              <div className="space-y-2 mb-4">
                {input.strategyHistory.map((pivot, idx) => (
-                 <div key={idx} className="text-xs text-slate-700 font-medium bg-white p-2 rounded-lg shadow-sm border border-indigo-100 flex items-start gap-2">
+                 <div key={idx} className={`text-xs font-medium p-2 rounded-lg shadow-sm border flex items-start gap-2 ${isDarkMode ? 'text-slate-300 bg-slate-800/80 border-indigo-500/20' : 'text-slate-700 bg-white border-indigo-100'}`}>
                    <span className="text-indigo-500 mt-0.5">•</span>
                    {pivot}
                  </div>
                ))}
              </div>
            ) : (
-             <p className="text-xs text-slate-400 italic mb-3 ml-1">No strategies applied yet.</p>
+             <p className={`text-xs italic mb-3 ml-1 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>No strategies applied yet.</p>
            )}
 
            {/* Manual Strategy Input */}
@@ -434,11 +449,11 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
                 onChange={(e) => setManualPivot(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddManualPivot()}
                 placeholder="Add manual strategy..."
-                className="flex-grow px-3 py-2 text-xs bg-white border border-indigo-100 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 text-slate-700"
+                className={`flex-grow px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-1 ${isDarkMode ? 'bg-slate-900/50 border-indigo-500/30 focus:border-indigo-400 focus:ring-indigo-400/50 text-white placeholder-slate-500' : 'bg-white border-indigo-200 focus:border-indigo-500 focus:ring-indigo-500/50 text-slate-800 placeholder-slate-400'}`}
               />
               <button 
                 onClick={handleAddManualPivot}
-                className="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center justify-center"
+                className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center border ${isDarkMode ? 'bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border-indigo-500/20' : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200 border-indigo-200'}`}
                 title="Add Strategy"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -446,17 +461,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
            </div>
         </div>
 
-        <div className="flex gap-3 pt-4 border-t border-gray-50">
+        <div className={`flex gap-3 pt-4 border-t ${isDarkMode ? 'border-slate-700/50' : 'border-slate-200'}`}>
            <button
              onClick={handleSaveScenario}
-             className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-500 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-100 shadow-sm active:scale-[0.98]"
+             className={`flex-1 py-3 px-4 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-all border shadow-sm active:scale-[0.98] ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'}`}
            >
              Save
            </button>
            {hasSavedScenario && (
              <button
                onClick={handleLoadScenario}
-               className="flex-1 py-3 px-4 bg-white hover:bg-gray-50 text-slate-500 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-all border border-gray-100 shadow-sm active:scale-[0.98]"
+               className={`flex-1 py-3 px-4 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-all border shadow-sm active:scale-[0.98] ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700' : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'}`}
              >
                Load
              </button>
@@ -468,8 +483,8 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           disabled={isLoading || !input.title}
           className={`w-full py-4 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-3 group relative overflow-hidden text-sm uppercase tracking-wider
             ${isLoading || !input.title 
-              ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
-              : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/20 active:scale-[0.99]'}`}
+              ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none border border-slate-700' 
+              : 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-indigo-500/20 active:scale-[0.99] border border-transparent'}`}
         >
           {isLoading ? (
             <div className="flex items-center gap-3">
