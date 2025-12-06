@@ -54,15 +54,16 @@ export const runSimulation = async (input: ProjectInput): Promise<SimulationResu
     4. Objectivity: A typical well-meaning pilot usually fails or struggles. A score > 80 should be extremely rare and reserved for perfect alignment.
 
     Output Requirements:
-    - Executive Summary: Be blunt. Focus on the "Hard Truths". Keep it concise (max 3 sentences).
-    - Critical Risks: List 3-5 specific, fatal flaws. Keep risk descriptions short.
+    - Executive Summary: Be blunt. Focus on the "Hard Truths". Why might this fail? Is the budget realistic? Is the tech appropriate? Keep it concise (max 3 sentences).
+    - Critical Risks: List 3-5 specific, fatal flaws.
     - Schedule: Create a realistic Gantt chart data structure.
-    - KEEP ALL TEXT FIELDS CONCISE TO OPTIMIZE SPEED.
+    - Pivots: Provide 3 concrete "Pivots" (strategic changes). For each pivot, you MUST specify exactly which project parameters (Budget, Duration, Partner, etc.) should change. keep rationale concise.
+
+    Optimization: Keep all text descriptions concise (max 2 sentences) to ensure speed. Ensure JSON is minimized.
 
     Task:
     1. Simulate the project lifecycle.
     2. Analyze risks, stakeholders, and budget.
-    3. Provide 3 concrete "Pivots" (strategic changes). For each pivot, you MUST specify exactly which project parameters (Budget, Duration, Partner, etc.) should change.
   `;
 
   // Helper to sanitize JSON string (remove markdown code blocks)

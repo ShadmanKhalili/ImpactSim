@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell, BarChart, Bar, ReferenceLine, Legend, ScatterChart, Scatter, ZAxis, LineChart, Line } from 'recharts';
 import { SimulationResult, PivotSuggestion } from '../types';
@@ -115,7 +116,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
     <div className="space-y-6 pb-12">
       
       {/* 1. Hero Stats Row (Bento Grid) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-up">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up">
         {/* Main Feasibility Score */}
         <div className="glass-panel p-8 rounded-3xl border border-white shadow-xl shadow-indigo-900/5 relative overflow-hidden group bg-gradient-to-br from-white to-indigo-50">
           <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
@@ -177,8 +178,8 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
       </div>
 
       {/* 2. Narrative & Wins */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up delay-100">
-        <div className="lg:col-span-2 glass-panel p-8 rounded-3xl shadow-lg border border-white bg-white">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in-up delay-100">
+        <div className="xl:col-span-2 glass-panel p-8 rounded-3xl shadow-lg border border-white bg-white">
           <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-3">
              <span className="p-2 bg-indigo-100 rounded-xl text-indigo-700 shadow-sm"><Icons.Target /></span>
              Executive AI Summary
@@ -270,7 +271,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
       </div>
 
       {/* 5. Metrics & Critical Risks */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up delay-400">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in-up delay-400">
         <div className="glass-panel p-8 rounded-3xl shadow-lg border border-white h-[450px] flex flex-col bg-white">
            <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
              <span className="w-2 h-2 rounded-full bg-violet-600"></span> Feasibility Metrics
@@ -288,7 +289,7 @@ export const SimulationDashboard: React.FC<SimulationDashboardProps> = ({ result
           </div>
         </div>
 
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Risk Scatter */}
             <div className="glass-panel p-8 rounded-3xl shadow-lg border border-white h-[450px] flex flex-col bg-white">
               <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4 text-sm uppercase tracking-wide">

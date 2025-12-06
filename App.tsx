@@ -142,7 +142,8 @@ const App: React.FC = () => {
       <main className="container mx-auto px-6 mt-8 flex-grow pb-12 relative z-10">
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
           
-          <div className="xl:col-span-3 lg:col-span-4">
+          {/* Increased width for Project Form (col-span-5 instead of 3) */}
+          <div className="xl:col-span-5 lg:col-span-5">
             <div className="sticky top-24 animate-fade-in-up">
                <ProjectForm 
                  input={input} 
@@ -156,7 +157,8 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="xl:col-span-9 lg:col-span-8">
+          {/* Adjusted Dashboard width (col-span-7 instead of 9) */}
+          <div className="xl:col-span-7 lg:col-span-7">
             {status === SimulationStatus.IDLE && (
               <div className="glass-panel rounded-3xl border border-white p-16 text-center flex flex-col items-center justify-center min-h-[600px] animate-fade-in delay-100 bg-white/95">
                 <div className="relative mb-8 group">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ProjectInput } from '../types';
 
@@ -184,7 +185,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
   };
 
   const InputGroup = ({ label, name, value, placeholder, icon }: any) => (
-    <div className="relative group">
+    <div className="relative group w-full">
       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 group-focus-within:text-indigo-600 transition-colors">
         {label}
       </label>
@@ -226,15 +227,15 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
 
       <div className="space-y-6">
         
-        <InputGroup 
-          label="Project Name" 
-          name="title" 
-          value={input.title} 
-          placeholder="e.g. Solar Community Kitchen"
-          icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>}
-        />
-
-        <div className="grid grid-cols-2 gap-5">
+        {/* Row 1: Title & Sector */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+           <InputGroup 
+            label="Project Name" 
+            name="title" 
+            value={input.title} 
+            placeholder="e.g. Solar Community Kitchen"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>}
+          />
           <InputGroup 
             label="Sector" 
             name="sector" 
@@ -242,6 +243,10 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             placeholder="Healthcare"
             icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>}
           />
+        </div>
+
+        {/* Row 2: Location & Beneficiaries */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <InputGroup 
             label="Location" 
             name="location" 
@@ -249,17 +254,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
             placeholder="Kenya"
             icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>}
           />
+          <InputGroup 
+            label="Target Beneficiaries" 
+            name="targetAudience" 
+            value={input.targetAudience} 
+            placeholder="Rural Farmers"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+          />
         </div>
 
-        <InputGroup 
-          label="Target Beneficiaries" 
-          name="targetAudience" 
-          value={input.targetAudience} 
-          placeholder="Rural Farmers"
-          icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
-        />
-
-        <div className="grid grid-cols-2 gap-5">
+        {/* Row 3: Budget, Duration, Funding (3 cols on larger screens) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
            <InputGroup 
              label="Budget" 
              name="budget" 
@@ -274,17 +279,17 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
              placeholder="12 Mo"
              icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
            />
+           <InputGroup 
+              label="Funding Source" 
+              name="fundingSource" 
+              value={input.fundingSource} 
+              placeholder="Grants"
+              icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>}
+          />
         </div>
 
-        <InputGroup 
-            label="Funding Source" 
-            name="fundingSource" 
-            value={input.fundingSource} 
-            placeholder="Grants"
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>}
-        />
-
-        <div className="grid grid-cols-2 gap-5">
+        {/* Row 4: Partners, Tech, Team (3 cols on larger screens) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Local Partner</label>
             <select
@@ -316,22 +321,21 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
               <option value="High Tech">High Tech</option>
             </select>
           </div>
-        </div>
-
-        <div>
-           <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Team Experience</label>
-           <select
-            name="teamExperience"
-            value={input.teamExperience}
-            onChange={handleChange}
-            className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
-          >
-            <option value="">Select...</option>
-            <option value="New / Volunteer Team">New / Volunteer Team</option>
-            <option value="Mixed Experience">Mixed Experience</option>
-            <option value="Experienced (3-5 years)">Experienced (3-5 years)</option>
-            <option value="Expert International Consortium">Expert International Consortium</option>
-          </select>
+          <div>
+             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Team Experience</label>
+             <select
+              name="teamExperience"
+              value={input.teamExperience}
+              onChange={handleChange}
+              className="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-base text-gray-900 font-medium focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all hover:bg-white shadow-sm"
+            >
+              <option value="">Select...</option>
+              <option value="New / Volunteer Team">New / Volunteer Team</option>
+              <option value="Mixed Experience">Mixed Experience</option>
+              <option value="Experienced (3-5 years)">Experienced (3-5 years)</option>
+              <option value="Expert International Consortium">Expert International Consortium</option>
+            </select>
+          </div>
         </div>
 
         <div>
@@ -346,7 +350,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({ input, setInput, onSim
           />
         </div>
 
-        {/* NEW: Strategy Evolution Section */}
+        {/* Strategy Evolution Section */}
         {input.strategyHistory && input.strategyHistory.length > 0 && (
           <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
              <label className="block text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2">
